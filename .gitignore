@@ -1,0 +1,16 @@
+# environment variables
+config/.env
+
+# emacs
+*~
+\#*\#
+.\#*
+
+# python
+*.pyc
+*.pyo
+__pycache__/
+
+
+# general
+*.log
