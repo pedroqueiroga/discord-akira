@@ -1,7 +1,8 @@
-import discord
-from discord.ext import commands
+from discord.ext.commands import Bot
+from . import commands
 
-class Terraplanista(commands.Bot):
+
+class Terraplanista(Bot):
 
     def __init__(self, command_prefix='$'):
         self.__test_channel_id = 398636498112741376
@@ -27,3 +28,6 @@ class Terraplanista(commands.Bot):
             
             channel = message.channel
             await channel.send('esse vírus é propaganda *cof cof* comunista!!!')
+
+    def add_commands(self):
+        self.add_command(commands.echo)
