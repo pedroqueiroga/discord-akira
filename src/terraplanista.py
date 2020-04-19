@@ -13,6 +13,10 @@ class Terraplanista(Bot):
         print(f'{self.user} has connected to Discord!')
 
     async def on_message(self, message):
+        # test channel only for now
+        if message.channel.id != self.__test_channel_id:
+            return
+
         print('on_message with message:')
         print(message)
         if message.author.id == self.user.id:
@@ -20,14 +24,13 @@ class Terraplanista(Bot):
             print('on_message sent by me')
             return
 
-        if message.channel.id == self.__test_channel_id:
-            if message.content.startswith(self.__command_prefix):
-                # it is a command
-                await self.process_commands(message)
-                return
-            
-            channel = message.channel
-            await channel.send('esse vírus é propaganda *cof cof* comunista!!!')
+        if message.content.startswith(self.__command_prefix):
+            # it is a command
+            await self.process_commands(message)
+            return
+
+        channel = message.channel
+        await channel.send('esse vírus é propaganda *cof cof* comunista!!!')
 
     def add_commands(self):
         self.add_command(commands.echo)
