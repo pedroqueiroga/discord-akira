@@ -3,12 +3,14 @@ from collections import deque
 import discord
 from discord.ext.commands import command, Cog
 import youtube_dl
+import datetime
 
 
 class Deejay(Cog):
 
     def __init__(self, bot):
         self.setlist = deque([])
+        self.current_song = None
         self.ydl_opts = {
             'quiet': False,
             'default_search': 'ytsearch',
@@ -52,17 +54,25 @@ class Deejay(Cog):
         # get video source url using youtube_dl
         video_info = {}
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-            videos = ydl.extract_info(song,
+            video = ydl.extract_info(song,
                                   download=False)
 
-            video = videos['entries'][0]
+            if 'entries' in video.keys():
+                # multiple videos, take first
+                # probably came from a video search instead of video url
+                video = video['entries'][0]
+                
             video_info['source_url'] = video['formats'][0]['url']
             video_info['title'] = video['title']
-            yt_prefix = 'https://www.youtube.com/watch?v='
-            video_info['youtube_url'] = yt_prefix + video['id']
+            video_info['webpage_url'] = video['webpage_url']
+            video_info['duration'] = video['duration']
+            video_info['thumbnail'] = video['thumbnail']
+
 
         self.setlist.append(video_info)
-        await ctx.send(f"adicionei: {video_info['youtube_url']}")
+        embed = self.get_embed(ctx.author, video_info)
+        
+        await ctx.send(embed=embed)
         if not ctx.guild.voice_client:
             # the bot does not have a VoiceClient on this guild
             voice_client = await self.get_voice_client(ctx)
@@ -76,11 +86,13 @@ class Deejay(Cog):
         if not voice_client:
             print('weirdly, i have no voice_client but I should have')
             self.setlist.clear()
+            self.current_song = None
             return
         if len(self.setlist) == 0:
             # if the queue is empty, disconnect
             asyncio.run_coroutine_threadsafe(voice_client.disconnect(),
                                              self.bot.loop)
+            self.current_song = None
             return
         
         # get an AudioSource from next song in setlist
@@ -94,6 +106,7 @@ class Deejay(Cog):
 
         # clear pula votes for this fresh song
         self.pula_votes.clear()
+        self.current_song = next_song_info
 
     def is_playing_guild(self, guild):
         if guild.voice_client:
@@ -104,3 +117,45 @@ class Deejay(Cog):
     async def get_voice_client(self, ctx):
         if ctx.author.voice.channel:
             return await ctx.author.voice.channel.connect()
+
+    def get_setlist_titles(self, current=False, n=None):
+        if self.current_song and current:
+            titles = [self.current_song['title']]
+        else:
+            titles = []
+
+        for song in self.setlist:
+            titles.append(song['title'])
+            if len(titles) == n:
+                # if n is not given, will append all titles
+                break
+        return titles
+
+    def get_embed(self, author, video_info):
+        title = video_info['title']
+        duration = self.seconds_human_friendly(video_info['duration'])
+        thumbnail = video_info['thumbnail']
+        webpage_url = video_info['webpage_url']
+        titles = self.get_setlist_titles(current=True, n=3)
+
+        embed = discord.Embed(title=title,
+                              url=webpage_url,
+                              description=f'Duração: {duration}') \
+                       .set_author(name=author.display_name,
+                                   icon_url=author.avatar_url) \
+                       .set_thumbnail(url=thumbnail) \
+                       .set_footer(text=', '.join(titles),
+                                   icon_url='https://raw.githubusercontent.com/pqueiroga/discord-terraplanista/master/icons/queue_music_white_18dp_36.png')
+
+        return embed
+
+    def seconds_human_friendly(self, seconds):
+        if seconds < 60:
+            return seconds + ' segundos'
+        
+        readable = str(datetime.timedelta(seconds=seconds))
+
+        if readable.startswith('0:'):
+            return readable[2:]
+        if 'day' in readable:
+            return readable.replace('day', 'dia')
