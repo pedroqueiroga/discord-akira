@@ -1,6 +1,6 @@
 from discord.ext.commands import Bot
 from . import commands
-from .cogs.deejay import Deejay
+from .cogs import deejay, bibliotekira
 import random
 
 class Terraplanista(Bot):
@@ -33,7 +33,6 @@ class Terraplanista(Bot):
         elif random.random() < 0.13:
             await channel.send('Esse vírus é propaganda *cof cof* comunista!!!')
 
-
     async def on_raw_reaction_add(self, payload):
         if payload.member == self.user:
             # reaction added by me
@@ -43,12 +42,13 @@ class Terraplanista(Bot):
         if not emoji.name in '❔':
             # the emoji is not one of these
             return
+
         channel = self.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
-        content = message.content
-        if not message.edited_at:
-            await message.edit(content=f'{content}\nEDIT')
+        bibliotekira = self.get_cog('Bibliotekira')
+        await bibliotekira.add_translation(message)
 
     def add_commands(self):
         self.add_command(commands.echo)
-        self.add_cog(Deejay(self))
+        self.add_cog(deejay.Deejay(self))
+        self.add_cog(bibliotekira.Bibliotekira(self))
