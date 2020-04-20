@@ -204,7 +204,7 @@ class Deejay(Cog):
 
     def seconds_human_friendly(self, seconds):
         if seconds < 60:
-            return seconds + ' segundos'
+            return str(seconds) + ' segundos'
         
         readable = str(datetime.timedelta(seconds=seconds))
 
