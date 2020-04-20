@@ -1,10 +1,12 @@
 import asyncio
 from collections import deque
+import datetime
 import discord
 from discord.ext.commands import command, Cog
 import youtube_dl
-import datetime
 import functools
+
+from ..utils import translation_book, send_with_reaction
 
 
 class Deejay(Cog):
@@ -36,7 +38,8 @@ class Deejay(Cog):
         """
         
         if not self.current_song:
-            await ctx.send('Fila vazia.')
+            meow = translation_book.inverse['Fila vazia.']
+            await send_with_reaction(ctx.send, meow)
         else:
             await ctx.send(embed=self.get_fila_embed())
 
@@ -46,6 +49,12 @@ class Deejay(Cog):
         Vota para pular a música atual.
         """
 
+        # makes sense only if there is a song playing
+        if not self.current_song:
+            meow = translation_book.inverse['Não estou tocando nada.']
+            await send_with_reaction(ctx.send, meow)
+            return
+        
         self.pula_votes.add(ctx.author.id)
 
         n_members = len(ctx.voice_client.channel.members)
@@ -55,12 +64,14 @@ class Deejay(Cog):
             # 1/3 plus of the voice channel members voted to skip the song
             ctx.voice_client.pause()
             self.play_next(ctx.guild)
-            await ctx.send('Pulei.')
+            meow = translation_book.inverse['Pulei.']
+            await send_with_reaction(ctx.send, meow)
 
         else:
             n_to_skip = required_votes - len(self.pula_votes)
-            plural = 's' if n_to_skip > 1 else ''
-            await ctx.send(f'Preciso de mais {n_to_skip} voto{plural} para pular.')
+            # TODO implement logic for any number (right now works for 1-9 only)
+            meow = translation_book.inverse[n_to_skip]
+            await send_with_reaction(ctx.send, meow)
             
     async def request(self, ctx, song):
         call_play = False
@@ -68,7 +79,8 @@ class Deejay(Cog):
             # the bot does not have a VoiceClient on this guild
             voice_client = await self.get_voice_client(ctx)
             if not voice_client:
-                await ctx.send('Você não está em nenhum chat de voz seu LADRÃO')
+                meow = translation_book.inverse['Você não está em nenhum canal de voz.']
+                await send_with_reaction(ctx.send, meow)
                 return
 
             # should call play because isn't playing yet

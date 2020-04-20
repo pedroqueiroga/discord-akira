@@ -8,5 +8,4 @@ async def echo(ctx, *args):
     Ecoa os argumentos.
     """
     response = ' '.join(args)
-    message = await ctx.send(response)
-    await message.add_reaction('❔')
+    await ctx.send(response)

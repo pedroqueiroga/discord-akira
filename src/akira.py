@@ -1,7 +1,10 @@
 from discord.ext.commands import Bot
+import random
+
 from . import commands
 from .cogs import deejay, bibliotekira
-import random
+from .utils import translation_book, send_with_reaction
+
 
 class Akira(Bot):
 
@@ -27,11 +30,10 @@ class Akira(Bot):
         if message.content.startswith(self.__command_prefix):
             # it is a command
             if random.random() < 0.17:
-                await channel.send('Isso aí é a tua opinião só.')
+                meow = translation_book.inverse['Talvez mais tarde.']
+                await send_with_reaction(channel.send, meow)
             else:
                 await self.process_commands(message)
-        elif random.random() < 0.13:
-            await channel.send('Esse vírus é propaganda *cof cof* comunista!!!')
 
     async def on_raw_reaction_add(self, payload):
         if payload.member == self.user:
@@ -50,5 +52,5 @@ class Akira(Bot):
 
     def add_commands(self):
         self.add_command(commands.echo)
-        self.add_cog(deejay.Deejay(self))
         self.add_cog(bibliotekira.Bibliotekira(self))
+        self.add_cog(deejay.Deejay(self))
