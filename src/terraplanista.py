@@ -1,12 +1,12 @@
 from discord.ext.commands import Bot
 from . import commands
-
+from .cogs.deejay import Deejay
 
 class Terraplanista(Bot):
 
     def __init__(self, command_prefix='$'):
         self.__test_channel_id = 398636498112741376
-        self.__command_prefix=command_prefix
+        self.__command_prefix = command_prefix
         super().__init__(command_prefix)
     
     async def on_ready(self):
@@ -34,3 +34,4 @@ class Terraplanista(Bot):
 
     def add_commands(self):
         self.add_command(commands.echo)
+        self.add_cog(Deejay(self))
