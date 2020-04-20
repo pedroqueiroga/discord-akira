@@ -4,6 +4,7 @@ import discord
 from discord.ext.commands import command, Cog
 import youtube_dl
 import datetime
+import functools
 
 
 class Deejay(Cog):
@@ -29,6 +30,17 @@ class Deejay(Cog):
         await self.request(ctx, args)
 
     @command()
+    async def fila(self, ctx):
+        """
+        Mostra a fila de músicas.
+        """
+        
+        if not self.current_song:
+            await ctx.send('Fila vazia.')
+        else:
+            await ctx.send(embed=self.get_fila_embed())
+
+    @command()
     async def pula(self, ctx):
         """
         Vota para pular a música atual.
@@ -37,14 +49,14 @@ class Deejay(Cog):
         self.pula_votes.add(ctx.author.id)
 
         n_members = len(ctx.voice_client.channel.members)
-        print('n_members:',n_members)
         required_votes = 1/3 * (n_members-1) # 1 is the bot
 
         if len(self.pula_votes) >= required_votes:
             # 1/3 plus of the voice channel members voted to skip the song
-            await ctx.send('Pulando...')
             ctx.voice_client.pause()
             self.play_next(ctx.guild)
+            await ctx.send('Pulei.')
+
         else:
             n_to_skip = required_votes - len(self.pula_votes)
             plural = 's' if n_to_skip > 1 else ''
@@ -70,7 +82,7 @@ class Deejay(Cog):
 
 
         self.setlist.append(video_info)
-        embed = self.get_embed(ctx.author, video_info)
+        embed = self.get_toca_embed(ctx.author, video_info)
         
         await ctx.send(embed=embed)
         if not ctx.guild.voice_client:
@@ -131,7 +143,19 @@ class Deejay(Cog):
                 break
         return titles
 
-    def get_embed(self, author, video_info):
+    def get_setlist_titles_links_formatted(self, current=False):
+        if self.current_song and current:
+            titles = [
+                f"[{self.current_song['title']}]({self.current_song['webpage_url']})"
+                ]
+        else:
+            titles = []
+
+        titles.extend([ f"[{s['title']}]({s['webpage_url']})" for s in self.setlist ])
+        return titles
+            
+
+    def get_toca_embed(self, author, video_info):
         title = video_info['title']
         duration = self.seconds_human_friendly(video_info['duration'])
         thumbnail = video_info['thumbnail']
@@ -140,7 +164,7 @@ class Deejay(Cog):
 
         embed = discord.Embed(title=title,
                               url=webpage_url,
-                              description=f'Duração: {duration}') \
+                              description=f'**Duração:** {duration}') \
                        .set_author(name=author.display_name,
                                    icon_url=author.avatar_url) \
                        .set_thumbnail(url=thumbnail) \
@@ -148,6 +172,29 @@ class Deejay(Cog):
                                    icon_url='https://raw.githubusercontent.com/pqueiroga/discord-terraplanista/master/icons/queue_music_white_18dp_36.png')
 
         return embed
+
+    def get_fila_embed(self):
+        titles_links = self.get_setlist_titles_links_formatted(current=False)
+        joined_titles_links = '\n'.join(titles_links)
+        total_duration = self.seconds_human_friendly(self.total_setlist_duration())
+        total_duration_str=f'Duração total: {total_duration}'
+
+        current_song_duration_str = f"**Duração:** {self.seconds_human_friendly(self.current_song['duration'])}"
+
+        next_str = f'\n\n**Próximas:**\n{joined_titles_links}' if self.setlist else ''
+        
+        embed = discord.Embed(title=self.current_song['title'],
+                              url=self.current_song['webpage_url'],
+                              description=f'{current_song_duration_str}{next_str}') \
+                              .set_author(name=total_duration_str,
+                                          icon_url='https://raw.githubusercontent.com/pqueiroga/discord-terraplanista/master/icons/queue_music_white_18dp_36.png') \
+                              .set_thumbnail(url=self.current_song['thumbnail'])
+        return embed
+
+    def total_setlist_duration(self):
+        return functools.reduce(lambda x, y: {'duration': x['duration'] + y['duration']},
+                                self.setlist,
+                                self.current_song)['duration']
 
     def seconds_human_friendly(self, seconds):
         if seconds < 60:
@@ -159,3 +206,5 @@ class Deejay(Cog):
             return readable[2:]
         if 'day' in readable:
             return readable.replace('day', 'dia')
+
+        return readable
