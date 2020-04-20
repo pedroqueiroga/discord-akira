@@ -63,6 +63,17 @@ class Deejay(Cog):
             await ctx.send(f'Preciso de mais {n_to_skip} voto{plural} para pular.')
             
     async def request(self, ctx, song):
+        call_play = False
+        if not ctx.guild.voice_client:
+            # the bot does not have a VoiceClient on this guild
+            voice_client = await self.get_voice_client(ctx)
+            if not voice_client:
+                await ctx.send('Você não está em nenhum chat de voz seu LADRÃO')
+                return
+
+            # should call play because isn't playing yet
+            call_play = True
+        
         # get video source url using youtube_dl
         video_info = {}
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
@@ -80,18 +91,13 @@ class Deejay(Cog):
             video_info['duration'] = video['duration']
             video_info['thumbnail'] = video['thumbnail']
 
-
-        self.setlist.append(video_info)
         embed = self.get_toca_embed(ctx.author, video_info)
-        
         await ctx.send(embed=embed)
-        if not ctx.guild.voice_client:
-            # the bot does not have a VoiceClient on this guild
-            voice_client = await self.get_voice_client(ctx)
-            if not voice_client:
-               await ctx.send('Você não está em nenhum chat de voz')
-            else:
-                self.play_next(ctx.guild)
+        self.setlist.append(video_info)
+
+        if call_play:
+            self.play_next(ctx.guild)
+
 
     def play_next(self, guild):
         voice_client = guild.voice_client
@@ -127,7 +133,7 @@ class Deejay(Cog):
             return False
             
     async def get_voice_client(self, ctx):
-        if ctx.author.voice.channel:
+        if ctx.author.voice:
             return await ctx.author.voice.channel.connect()
 
     def get_setlist_titles(self, current=False, n=None):
