@@ -18,18 +18,20 @@ class Terraplanista(Bot):
         #if message.channel.id != self.__test_channel_id:
         #    return
 
+        channel = message.channel
+
         if message.author.id == self.user.id:
             # messages sent by me
             return
-
+        
         if message.content.startswith(self.__command_prefix):
             # it is a command
-            await self.process_commands(message)
-            return
-
-        channel = message.channel
-        if random.random() < 0.13:
-            await channel.send('esse vírus é propaganda *cof cof* comunista!!!')
+            if random.random() < 0.17:
+                await channel.send('Isso aí é a tua opinião só.')
+            else:
+                await self.process_commands(message)
+        elif random.random() < 0.13:
+            await channel.send('Esse vírus é propaganda *cof cof* comunista!!!')
 
     def add_commands(self):
         self.add_command(commands.echo)
