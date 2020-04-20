@@ -3,7 +3,7 @@ from . import commands
 from .cogs import deejay, bibliotekira
 import random
 
-class Terraplanista(Bot):
+class Akira(Bot):
 
     def __init__(self, command_prefix='$'):
         self.__test_channel_id = 398636498112741376

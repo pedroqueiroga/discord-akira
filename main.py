@@ -1,13 +1,13 @@
 from config import settings
-from src.terraplanista import Terraplanista
+from src.akira import Akira
 import os
 
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 
-br = Terraplanista()
+ak = Akira()
 
-br.add_commands()
+ak.add_commands()
 
-br.run(DISCORD_TOKEN)
+ak.run(DISCORD_TOKEN)
 
 print('fim?')
