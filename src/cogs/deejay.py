@@ -14,6 +14,7 @@ class Deejay(Cog):
             'default_search': 'ytsearch',
             'format': 'bestaudio/best',
         }
+        self.pula_votes = set()
         self.bot = bot
 
     @command()
@@ -25,6 +26,28 @@ class Deejay(Cog):
 
         await self.request(ctx, args)
 
+    @command()
+    async def pula(self, ctx):
+        """
+        Vota para pular a música atual.
+        """
+
+        self.pula_votes.add(ctx.author.id)
+
+        n_members = len(ctx.voice_client.channel.members)
+        print('n_members:',n_members)
+        required_votes = 1/3 * (n_members-1) # 1 is the bot
+
+        if len(self.pula_votes) >= required_votes:
+            # 1/3 plus of the voice channel members voted to skip the song
+            await ctx.send('Pulando...')
+            ctx.voice_client.pause()
+            self.play_next(ctx.guild)
+        else:
+            n_to_skip = required_votes - len(self.pula_votes)
+            plural = 's' if n_to_skip > 1 else ''
+            await ctx.send(f'Preciso de mais {n_to_skip} voto{plural} para pular.')
+            
     async def request(self, ctx, song):
         # get video source url using youtube_dl
         video_info = {}
@@ -65,11 +88,12 @@ class Deejay(Cog):
         audio_source = discord.PCMVolumeTransformer(
             discord.FFmpegPCMAudio(next_song_info['source_url'],
                                    before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'))
-        print('starting to play', next_song_info)
-        print('song queue:', self.setlist)
 
         voice_client.play(audio_source,
                           after=lambda _: self.play_next(guild))
+
+        # clear pula votes for this fresh song
+        self.pula_votes.clear()
 
     def is_playing_guild(self, guild):
         if guild.voice_client:
