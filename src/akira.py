@@ -39,10 +39,6 @@ class Akira(Bot):
         if payload.member == self.user:
             # reaction added by me
             return
-        if payload.user_id != self.user.id:
-            # message isn't mine
-            return
-
         emoji = payload.emoji
         if not emoji.name in '❔':
             # the emoji is not one of these
@@ -50,6 +46,11 @@ class Akira(Bot):
 
         channel = self.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
+
+        if message.author.id != self.user.id:
+            # message isn't mine
+            return
+
         bibliotekira = self.get_cog('Bibliotekira')
         await bibliotekira.add_translation(message)
 
