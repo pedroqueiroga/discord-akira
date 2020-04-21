@@ -17,10 +17,6 @@ class Akira(Bot):
         print(f'{self.user} has connected to Discord!')
 
     async def on_message(self, message):
-        # test channel only for now
-        #if message.channel.id != self.__test_channel_id:
-        #    return
-
         channel = message.channel
 
         if message.author.id == self.user.id:
