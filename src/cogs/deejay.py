@@ -197,16 +197,20 @@ class Deejay(Cog):
         duration = self.seconds_human_friendly(video_info['duration'])
         thumbnail = video_info['thumbnail']
         webpage_url = video_info['webpage_url']
-        titles = self.get_setlist_titles(author.guild.id, current=True, n=3)
 
+        n_titles = 3
+        titles = self.get_setlist_titles(author.guild.id, current=True, n=n_titles)
+        total_songs = len(self.setlists[author.guild.id]) + 1 # + current song
+        footer = ', '.join(titles) + ('...' if total_songs > n_titles else '')
+        
         embed = discord.Embed(title=title,
                               url=webpage_url,
                               description=f'**Duração:** {duration}') \
                        .set_author(name=author.display_name,
                                    icon_url=author.avatar_url) \
                        .set_thumbnail(url=thumbnail) \
-                       .set_footer(text=', '.join(titles),
-                                   icon_url='https://raw.githubusercontent.com/pqueiroga/discord-terraplanista/master/icons/queue_music_white_18dp_36.png')
+                       .set_footer(text=footer,
+                                   icon_url='https://raw.githubusercontent.com/pqueiroga/discord-terraplanista/master/icons/playlist_add_check_white_18dp_36.png')
 
         return embed
 
