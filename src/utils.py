@@ -13,7 +13,7 @@ translation_book = bidict({
     'MVAU.': 5,
     'mviau.': 6,
     'mviiau.': 7,
-    'MViiAU!': 8,
+    'MViiIAU!': 8,
     'mixau.': 9,
     '...': 'Fila vazia.',
     '...?': 'Não estou tocando nada.'
