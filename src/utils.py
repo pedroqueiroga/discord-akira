@@ -3,6 +3,7 @@ from bidict import bidict
 translation_book = bidict({
     'miaau.': 'Talvez mais tarde.',
     'MIAAAU!!!': 'Você não está em nenhum canal de voz.',
+    'Miau...': 'Você não está no meu canal de voz.',
     'Miau.': 'Pulei.',
     'Meow.': 0,
     'miau?': 1,

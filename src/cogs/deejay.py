@@ -2,7 +2,7 @@ import asyncio
 from collections import deque
 import datetime
 import discord
-from discord.ext.commands import command, Cog
+from discord.ext.commands import command, guild_only, Cog
 import youtube_dl
 import functools
 
@@ -12,17 +12,18 @@ from ..utils import translation_book, send_with_reaction
 class Deejay(Cog):
 
     def __init__(self, bot):
-        self.setlist = deque([])
-        self.current_song = None
+        self.bot = bot
+        self.setlists = {}
+        self.current_songs = {}
+        self.pula_votes = {}
         self.ydl_opts = {
             'quiet': False,
             'default_search': 'ytsearch',
             'format': 'bestaudio/best',
         }
-        self.pula_votes = set()
-        self.bot = bot
 
     @command()
+    @guild_only()
     async def toca(self, ctx, *, args):
         """
         Toca a música no canal de voz do invocador. Continua tocando no canal de voz
@@ -32,35 +33,44 @@ class Deejay(Cog):
         await self.request(ctx, args)
 
     @command()
+    @guild_only()
     async def fila(self, ctx):
         """
         Mostra a fila de músicas.
         """
-        
-        if not self.current_song:
+        current_song = self.current_songs.get(ctx.guild.id)
+        if not current_song:
             meow = translation_book.inverse['Fila vazia.']
             await send_with_reaction(ctx.send, meow)
         else:
-            await ctx.send(embed=self.get_fila_embed())
+            await ctx.send(embed=self.get_fila_embed(ctx.guild.id))
 
     @command()
+    @guild_only()
     async def pula(self, ctx):
         """
         Vota para pular a música atual.
         """
 
+        current_song =self.current_songs.get(ctx.guild.id)
         # makes sense only if there is a song playing
-        if not self.current_song:
+        if not current_song:
             meow = translation_book.inverse['Não estou tocando nada.']
             await send_with_reaction(ctx.send, meow)
             return
         
-        self.pula_votes.add(ctx.author.id)
+        # only accept requests from members in the same voice channel
+        if (not ctx.author.voice) or (not ctx.author.voice.channel == ctx.voice_client.channel):
+            meow = translation_book.inverse['Você não está no meu canal de voz.']
+            await send_with_reaction(ctx.send, meow)
+            return
+            
+        self.pula_votes[ctx.guild.id].add(ctx.author.id)
 
         n_members = len(ctx.voice_client.channel.members)
         required_votes = 1/3 * (n_members-1) # 1 is the bot
 
-        if len(self.pula_votes) >= required_votes:
+        if len(self.pula_votes[ctx.guild.id]) >= required_votes:
             # 1/3 plus of the voice channel members voted to skip the song
             ctx.voice_client.pause()
             self.play_next(ctx.guild)
@@ -68,7 +78,7 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
 
         else:
-            n_to_skip = required_votes - len(self.pula_votes)
+            n_to_skip = required_votes - len(self.pula_votes[ctx.guild.id])
             # TODO implement logic for any number (right now works for 1-9 only)
             meow = translation_book.inverse[n_to_skip]
             await send_with_reaction(ctx.send, meow)
@@ -103,30 +113,37 @@ class Deejay(Cog):
             video_info['duration'] = video['duration']
             video_info['thumbnail'] = video['thumbnail']
 
+        self.setlists_append(ctx.guild.id, video_info)
         embed = self.get_toca_embed(ctx.author, video_info)
         await ctx.send(embed=embed)
-        self.setlist.append(video_info)
 
         if call_play:
             self.play_next(ctx.guild)
 
+    def setlists_append(self, guild_id, obj):
+        if self.setlists.get(guild_id):
+            # the guild has a non-empty setlist
+            self.setlists[guild_id].append(obj)
+        else:
+            # the setlist is missing, or empty.
+            self.setlists[guild_id] = deque([obj])
 
     def play_next(self, guild):
         voice_client = guild.voice_client
         if not voice_client:
             print('weirdly, i have no voice_client but I should have')
-            self.setlist.clear()
-            self.current_song = None
+            self.setlists[guild.id].clear()
+            self.current_songs[guild.id] = None
             return
-        if len(self.setlist) == 0:
+        if len(self.setlists[guild.id]) == 0:
             # if the queue is empty, disconnect
             asyncio.run_coroutine_threadsafe(voice_client.disconnect(),
                                              self.bot.loop)
-            self.current_song = None
+            self.current_songs[guild.id] = None
             return
         
         # get an AudioSource from next song in setlist
-        next_song_info = self.setlist.popleft()
+        next_song_info = self.setlists[guild.id].popleft()
         audio_source = discord.PCMVolumeTransformer(
             discord.FFmpegPCMAudio(next_song_info['source_url'],
                                    before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'))
@@ -134,9 +151,9 @@ class Deejay(Cog):
         voice_client.play(audio_source,
                           after=lambda _: self.play_next(guild))
 
-        # clear pula votes for this fresh song
-        self.pula_votes.clear()
-        self.current_song = next_song_info
+        # create clean pula votes for this fresh song
+        self.pula_votes[guild.id] = set()
+        self.current_songs[guild.id] = next_song_info
 
     def is_playing_guild(self, guild):
         if guild.voice_client:
@@ -148,28 +165,30 @@ class Deejay(Cog):
         if ctx.author.voice:
             return await ctx.author.voice.channel.connect()
 
-    def get_setlist_titles(self, current=False, n=None):
-        if self.current_song and current:
-            titles = [self.current_song['title']]
+    def get_setlist_titles(self, guild_id, current=False, n=None):
+        current_song = self.current_songs.get(guild_id)
+        if current_song and current:
+            titles = [current_song['title']]
         else:
             titles = []
 
-        for song in self.setlist:
+        for song in self.setlists[guild_id]:
             titles.append(song['title'])
             if len(titles) == n:
                 # if n is not given, will append all titles
                 break
         return titles
 
-    def get_setlist_titles_links_formatted(self, current=False):
-        if self.current_song and current:
+    def get_setlist_titles_links_formatted(self, guild_id, current=False):
+        current_song = self.current_songs.get(guild_id)
+        if current_song and current:
             titles = [
-                f"[{self.current_song['title']}]({self.current_song['webpage_url']})"
+                f"[{current_song['title']}]({current_song['webpage_url']})"
                 ]
         else:
             titles = []
 
-        titles.extend([ f"[{s['title']}]({s['webpage_url']})" for s in self.setlist ])
+        titles.extend([ f"[{s['title']}]({s['webpage_url']})" for s in self.setlists[guild_id] ])
         return titles
             
 
@@ -178,7 +197,7 @@ class Deejay(Cog):
         duration = self.seconds_human_friendly(video_info['duration'])
         thumbnail = video_info['thumbnail']
         webpage_url = video_info['webpage_url']
-        titles = self.get_setlist_titles(current=True, n=3)
+        titles = self.get_setlist_titles(author.guild.id, current=True, n=3)
 
         embed = discord.Embed(title=title,
                               url=webpage_url,
@@ -191,28 +210,29 @@ class Deejay(Cog):
 
         return embed
 
-    def get_fila_embed(self):
-        titles_links = self.get_setlist_titles_links_formatted(current=False)
+    def get_fila_embed(self, guild_id):
+        titles_links = self.get_setlist_titles_links_formatted(guild_id, current=False)
         joined_titles_links = '\n'.join(titles_links)
-        total_duration = self.seconds_human_friendly(self.total_setlist_duration())
+        total_duration = self.seconds_human_friendly(self.total_setlist_duration(guild_id))
         total_duration_str=f'Duração total: {total_duration}'
+        current_song = self.current_songs.get(guild_id)
+        current_song_duration_str = f"**Duração:** {self.seconds_human_friendly(current_song['duration'])}"
 
-        current_song_duration_str = f"**Duração:** {self.seconds_human_friendly(self.current_song['duration'])}"
-
-        next_str = f'\n\n**Próximas:**\n{joined_titles_links}' if self.setlist else ''
+        next_str = f'\n\n**Próximas:**\n{joined_titles_links}' if self.setlists[guild_id] else ''
         
-        embed = discord.Embed(title=self.current_song['title'],
-                              url=self.current_song['webpage_url'],
+        embed = discord.Embed(title=current_song['title'],
+                              url=current_song['webpage_url'],
                               description=f'{current_song_duration_str}{next_str}') \
                               .set_author(name=total_duration_str,
                                           icon_url='https://raw.githubusercontent.com/pqueiroga/discord-terraplanista/master/icons/queue_music_white_18dp_36.png') \
-                              .set_thumbnail(url=self.current_song['thumbnail'])
+                              .set_thumbnail(url=current_song['thumbnail'])
         return embed
 
-    def total_setlist_duration(self):
+    def total_setlist_duration(self, guild_id):
+        current_song = self.current_songs.get(guild_id)
         return functools.reduce(lambda x, y: {'duration': x['duration'] + y['duration']},
-                                self.setlist,
-                                self.current_song)['duration']
+                                self.setlists[guild_id],
+                                current_song)['duration']
 
     def seconds_human_friendly(self, seconds):
         if seconds < 60:
