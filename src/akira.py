@@ -39,6 +39,9 @@ class Akira(Bot):
         if payload.member == self.user:
             # reaction added by me
             return
+        if payload.user_id != self.user.id:
+            # message isn't mine
+            return
 
         emoji = payload.emoji
         if not emoji.name in '❔':
