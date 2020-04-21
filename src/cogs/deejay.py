@@ -6,10 +6,11 @@ from discord.ext.commands import command, guild_only, Cog
 import youtube_dl
 import functools
 
-from ..utils import translation_book, send_with_reaction
+from ..translation import miau_to_pt, pt_to_miau, InfoMessages, send_with_reaction
 
 
 class Deejay(Cog):
+    """Akira discotecando"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -17,7 +18,7 @@ class Deejay(Cog):
         self.current_songs = {}
         self.pula_votes = {}
         self.ydl_opts = {
-            'quiet': False,
+            'quiet': True,
             'default_search': 'ytsearch',
             'format': 'bestaudio/best',
         }
@@ -26,8 +27,9 @@ class Deejay(Cog):
     @guild_only()
     async def toca(self, ctx, *, args):
         """
-        Toca a música no canal de voz do invocador. Continua tocando no canal de voz
-        em que estiver.
+        Toca música. Se não estiver conectada a um canal de voz, entra no canal de voz do invocador. Continua tocando no canal de voz em que estiver. Não aceita pedidos de quem não está no canal de voz.
+
+        :param str args: URL ou string de busca no youtube.
         """
 
         await self.request(ctx, args)
@@ -36,11 +38,12 @@ class Deejay(Cog):
     @guild_only()
     async def fila(self, ctx):
         """
-        Mostra a fila de músicas.
+        Mostra a setlist atual.
         """
+        
         current_song = self.current_songs.get(ctx.guild.id)
         if not current_song:
-            meow = translation_book.inverse['Fila vazia.']
+            meow = pt_to_miau(InfoMessages.EMPTY_QUEUE)
             await send_with_reaction(ctx.send, meow)
         else:
             await ctx.send(embed=self.get_fila_embed(ctx.guild.id))
@@ -49,19 +52,19 @@ class Deejay(Cog):
     @guild_only()
     async def pula(self, ctx):
         """
-        Vota para pular a música atual.
+        Vota para pular a música atual. Pula com votos de 1/3 dos membros do canal de voz em que Akira está. Não aceita votos de quem não está no canal de voz.
         """
 
-        current_song =self.current_songs.get(ctx.guild.id)
+        current_song = self.current_songs.get(ctx.guild.id)
         # makes sense only if there is a song playing
         if not current_song:
-            meow = translation_book.inverse['Não estou tocando nada.']
+            meow = pt_to_miau(InfoMessages.NOT_PLAYING)
             await send_with_reaction(ctx.send, meow)
             return
         
         # only accept requests from members in the same voice channel
         if (not ctx.author.voice) or (not ctx.author.voice.channel == ctx.voice_client.channel):
-            meow = translation_book.inverse['Você não está no meu canal de voz.']
+            meow = pt_to_miau(InfoMessages.NOT_MY_VOICE_CHANNEL)
             await send_with_reaction(ctx.send, meow)
             return
             
@@ -74,13 +77,13 @@ class Deejay(Cog):
             # 1/3 plus of the voice channel members voted to skip the song
             ctx.voice_client.pause()
             self.play_next(ctx.guild)
-            meow = translation_book.inverse['Pulei.']
+            meow = pt_to_miau(InfoMessages.SKIPPED)
             await send_with_reaction(ctx.send, meow)
 
         else:
             n_to_skip = required_votes - len(self.pula_votes[ctx.guild.id])
             # TODO implement logic for any number (right now works for 1-9 only)
-            meow = translation_book.inverse[n_to_skip]
+            meow = pt_to_miau(n_to_skip)
             await send_with_reaction(ctx.send, meow)
             
     async def request(self, ctx, song):
@@ -89,12 +92,17 @@ class Deejay(Cog):
             # the bot does not have a VoiceClient on this guild
             voice_client = await self.get_voice_client(ctx)
             if not voice_client:
-                meow = translation_book.inverse['Você não está em nenhum canal de voz.']
+                meow = pt_to_miau(InfoMessages.NO_VOICE_CHANNEL)
                 await send_with_reaction(ctx.send, meow)
                 return
 
             # should call play because isn't playing yet
             call_play = True
+        elif (not ctx.author.voice) or (not ctx.author.voice.channel == ctx.voice_client.channel):
+            # only accept requests from members in the same voice channel
+            meow = pt_to_miau(InfoMessages.NOT_MY_VOICE_CHANNEL)
+            await send_with_reaction(ctx.send, meow)
+            return
         
         # get video source url using youtube_dl
         video_info = {}

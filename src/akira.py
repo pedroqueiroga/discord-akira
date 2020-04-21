@@ -1,12 +1,12 @@
 from discord.ext.commands import Bot
 import random
 
-from . import commands
-from .cogs import deejay, bibliotekira
-from .utils import translation_book, send_with_reaction
+from . import commands, translation
+from .cogs import deejay
 
 
 class Akira(Bot):
+    """Bot que fala em miau. Contém módulo de tradução embutido."""
 
     def __init__(self, command_prefix='$'):
         self.__test_channel_id = 398636498112741376
@@ -25,9 +25,9 @@ class Akira(Bot):
         
         if message.content.startswith(self.__command_prefix):
             # it is a command
-            if random.random() < 0.17:
-                meow = translation_book.inverse['Talvez mais tarde.']
-                await send_with_reaction(channel.send, meow)
+            if random.random() < 0.07:
+                meow = translation.pt_to_miau(translation.InfoMessages.LATER)
+                await translation.send_with_reaction(channel.send, meow)
             else:
                 await self.process_commands(message)
 
@@ -35,8 +35,8 @@ class Akira(Bot):
         if payload.member == self.user:
             # reaction added by me
             return
-        emoji = payload.emoji
-        if not emoji.name in '❔':
+
+        if not payload.emoji.name in '❔':
             # the emoji is not one of these
             return
 
@@ -47,10 +47,14 @@ class Akira(Bot):
             # message isn't mine
             return
 
-        bibliotekira = self.get_cog('Bibliotekira')
-        await bibliotekira.add_translation(message)
+        if message.edited_at:
+           # this message already has a translation
+            return
 
+        trans = translation.miau_to_pt(message.content)
+        content_translated = f'{message.content}\n  *{trans}*'
+        await message.edit(content=content_translated)
+        
     def add_commands(self):
         self.add_command(commands.echo)
-        self.add_cog(bibliotekira.Bibliotekira(self))
         self.add_cog(deejay.Deejay(self))
