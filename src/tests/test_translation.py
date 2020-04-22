@@ -44,5 +44,16 @@ class TestTranslation():
         for i in range(10):
             miau = _translation_book.inverse[i]
             assert pt_to_miau(i) == miau
+
+    def test_pt_to_miau_without_pt(self):
+        for msg in InfoMessages:
+            miau = _translation_book.inverse[msg]
+            with pytest.raises(TypeError):
+                pt_to_miau(msg.value)
         
-        
+    def test_pt_to_miau_with_invalid_pt(self):
+        with pytest.raises(KeyError):
+            pt_to_miau(-1)
+
+        with pytest.raises(KeyError):
+            pt_to_miau(10)
