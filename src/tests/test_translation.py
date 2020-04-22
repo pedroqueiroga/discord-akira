@@ -39,7 +39,7 @@ class TestTranslation():
     def test_pt_to_miau_with_pt(self):
         for msg in InfoMessages:
             miau = _translation_book.inverse[msg]
-            assert pt_to_miau(msg.value) == miau
+            assert pt_to_miau(msg) == miau
 
         for i in range(10):
             miau = _translation_book.inverse[i]

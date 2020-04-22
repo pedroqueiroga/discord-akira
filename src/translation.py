@@ -76,21 +76,21 @@ def miau_to_pt(miau):
     
     return _translation_book[miau].value
     
-def pt_to_miau(infomessage):
-    """Translate an InfoMessage into a miau.
+def pt_to_miau(phrase):
+    """Translates a phrase into a miau.
 
     :param phrase: The phrase to be translated.
-    :type phrase: InfoMessage instance.
+    :type phrase: int or InfoMessage instance.
     :returns: a portuguese phrase written in miau.
     :rtype: str
     :raises TypeError: if the phrase is not a string.
     :raises KeyError: if the phrase can't be translated.
     """
 
-    if not isinstance(infomessage, InfoMessages):
-        raise TypeError('infomessage should be a InfoMessages instance.')
+    if not (isinstance(phrase, InfoMessages) or is_int(phrase)):
+        raise TypeError('infomessage should be an int or InfoMessages instance.')
 
-    return _translation_book.inverse[infomessage]
+    return _translation_book.inverse[phrase]
 
 async def send_with_reaction(message_send, content):
     """Add translation reaction to a message after sending it.
