@@ -1,12 +1,12 @@
 import asyncio
 from collections import deque
-import datetime
 import discord
 from discord.ext.commands import command, guild_only, Cog
 import youtube_dl
 import functools
 
 from ..translation import miau_to_pt, pt_to_miau, InfoMessages, send_with_reaction
+from ..utils import seconds_human_friendly
 
 
 class Deejay(Cog):
@@ -202,7 +202,7 @@ class Deejay(Cog):
 
     def get_toca_embed(self, author, video_info):
         title = video_info['title']
-        duration = self.seconds_human_friendly(video_info['duration'])
+        duration = seconds_human_friendly(video_info['duration'])
         thumbnail = video_info['thumbnail']
         webpage_url = video_info['webpage_url']
 
@@ -225,10 +225,10 @@ class Deejay(Cog):
     def get_fila_embed(self, guild_id):
         titles_links = self.get_setlist_titles_links_formatted(guild_id, current=False)
         joined_titles_links = '\n'.join(titles_links)
-        total_duration = self.seconds_human_friendly(self.total_setlist_duration(guild_id))
+        total_duration = seconds_human_friendly(self.total_setlist_duration(guild_id))
         total_duration_str=f'Duração total: {total_duration}'
         current_song = self.current_songs.get(guild_id)
-        current_song_duration_str = f"**Duração:** {self.seconds_human_friendly(current_song['duration'])}"
+        current_song_duration_str = f"**Duração:** {seconds_human_friendly(current_song['duration'])}"
 
         next_str = f'\n\n**Próximas:**\n{joined_titles_links}' if self.setlists[guild_id] else ''
         
@@ -246,15 +246,3 @@ class Deejay(Cog):
                                 self.setlists[guild_id],
                                 current_song)['duration']
 
-    def seconds_human_friendly(self, seconds):
-        if seconds < 60:
-            return str(seconds) + ' segundos'
-        
-        readable = str(datetime.timedelta(seconds=seconds))
-
-        if readable.startswith('0:'):
-            return readable[2:]
-        if 'day' in readable:
-            return readable.replace('day', 'dia')
-
-        return readable
