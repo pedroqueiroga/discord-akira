@@ -19,36 +19,36 @@ class Akira(Bot):
     async def on_message(self, message):
         channel = message.channel
 
-        if message.author.id == self.user.id:
+        if self.is_myself(message.author.id):
             # messages sent by me
             return
         
-        if message.content.startswith(self.__command_prefix):
+        if self.is_command(message.content):
             # it is a command
-            if random.random() < 0.07:
+            if self.should_ignore():
                 meow = translation.pt_to_miau(translation.InfoMessages.LATER)
                 await translation.send_with_reaction(channel.send, meow)
             else:
                 await self.process_commands(message)
 
     async def on_raw_reaction_add(self, payload):
-        if payload.member == self.user:
+        if self.is_myself(payload.member.id):
             # reaction added by me
             return
 
-        if not payload.emoji.name in '❔':
-            # the emoji is not one of these
+        if not self.is_emoji_control(payload.emoji.name):
+            # the reaction's emoji is not a control
             return
 
         channel = self.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
 
-        if message.author.id != self.user.id:
+        if not self.is_myself(message.author.id):
             # message isn't mine
             return
 
         if message.edited_at:
-           # this message already has a translation
+            # this message already has a translation
             return
 
         trans = translation.miau_to_pt(message.content)
@@ -58,3 +58,19 @@ class Akira(Bot):
     def add_commands(self):
         self.add_command(commands.echo)
         self.add_cog(deejay.Deejay(self))
+
+    def is_myself(self, id):
+        """Decides if id is myself's id"""
+        return self.user.id == id
+
+    def is_command(self, msg):
+        """Decides if a message is a command"""
+        return msg.startswith(self.__command_prefix)
+
+    def is_emoji_control(self, emoji):
+        """Decides if an emoji is a control"""
+        return emoji == '❔'
+
+    def should_ignore(self):
+        """Decides if should ignore a command"""
+        return random.random() < 0.07
