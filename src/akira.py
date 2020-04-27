@@ -3,7 +3,7 @@ import random
 from discord.ext.commands import Bot
 
 from . import commands, translation
-from .cogs import deejay
+from .cogs.deejay import deejay
 
 
 class Akira(Bot):

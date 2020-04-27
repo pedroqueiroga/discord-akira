@@ -3,15 +3,11 @@ import functools
 from collections import deque
 
 import discord
-import youtube_dl
 from discord.ext.commands import Cog, command, guild_only
 
-from ..translation import (
-    InfoMessages,
-    pt_to_miau,
-    send_with_reaction,
-)
-from ..utils import seconds_human_friendly
+from ...translation import InfoMessages, pt_to_miau, send_with_reaction
+from ...utils import seconds_human_friendly
+from .youtuber import Youtuber
 
 
 class Deejay(Cog):
@@ -22,18 +18,14 @@ class Deejay(Cog):
         self.setlists = {}
         self.current_songs = {}
         self.pula_votes = {}
-        self.ydl_opts = {
-            'quiet': True,
-            'default_search': 'ytsearch',
-            'format': 'bestaudio/best',
-        }
+        self.youtuber = Youtuber()
 
     @command()
     @guild_only()
     async def toca(self, ctx, *, args):
-        """
-        Toca música. Se não estiver conectada a um canal de voz, entra no canal
-        de voz do invocador. Continua tocando no canal de voz em que estiver.
+        """Toca música.
+        Se não estiver conectada a um canal de voz, entra no canal de voz do
+        invocador. Continua tocando no canal de voz em que estiver.
         Não aceita pedidos de quem não está no canal de voz.
 
         :param str args: URL ou string de busca no youtube.
@@ -44,9 +36,7 @@ class Deejay(Cog):
     @command()
     @guild_only()
     async def fila(self, ctx):
-        """
-        Mostra a setlist atual.
-        """
+        """Mostra a setlist atual."""
 
         current_song = self.current_songs.get(ctx.guild.id)
         if not current_song:
@@ -58,10 +48,9 @@ class Deejay(Cog):
     @command()
     @guild_only()
     async def pula(self, ctx):
-        """
-        Vota para pular a música atual. Pula com votos de 1/3 dos membros do
-        canal de voz em que Akira está. Não aceita votos de quem não está
-        no canal de voz.
+        """Vota para pular a música atual.
+        Pula com votos de 1/3 dos membros do canal de voz em que Akira está.
+        Não aceita votos de quem não está no canal de voz.
         """
 
         current_song = self.current_songs.get(ctx.guild.id)
@@ -117,22 +106,7 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
             return
 
-        # get video source url using youtube_dl
-        video_info = {}
-        with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-            video = ydl.extract_info(song, download=False)
-
-            if 'entries' in video.keys():
-                # multiple videos, take first
-                # probably came from a video search instead of video url
-                video = video['entries'][0]
-
-            video_info['source_url'] = video['formats'][0]['url']
-            video_info['title'] = video['title']
-            video_info['webpage_url'] = video['webpage_url']
-            video_info['duration'] = video['duration']
-            video_info['thumbnail'] = video['thumbnail']
-
+        video_info = self.youtuber.get_video_info(song)
         self.setlists_append(ctx.guild.id, video_info)
         embed = self.get_toca_embed(ctx.author, video_info)
         await ctx.send(embed=embed)
@@ -204,6 +178,16 @@ class Deejay(Cog):
         return titles
 
     def get_setlist_titles_links_formatted(self, guild_id, current=False):
+        """Gets the titles and links of the guild's setlist.
+
+        Formats the links in markdown.
+
+        :param int guild_id: id of a guild
+        :param bool current: If should include the current song
+        :returns: a list of markdown formatted strings
+        :rtype: [str]
+
+        """
         current_song = self.current_songs.get(guild_id)
         if current_song and current:
             titles = [
@@ -220,13 +204,12 @@ class Deejay(Cog):
         )
         return titles
 
-    def get_toca_embed(self, author, video_info):
+    def get_toca_embed(self, author, video_info, n_titles=3):
         title = video_info['title']
         duration = seconds_human_friendly(video_info['duration'])
         thumbnail = video_info['thumbnail']
         webpage_url = video_info['webpage_url']
 
-        n_titles = 3
         titles = self.get_setlist_titles(
             author.guild.id, current=True, n=n_titles
         )

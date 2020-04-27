@@ -1,4 +1,4 @@
-import discord
+"""Module with standalone commands"""
 from discord.ext.commands import command
 
 
