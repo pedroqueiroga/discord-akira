@@ -1,5 +1,6 @@
-from discord.ext.commands import Bot
 import random
+
+from discord.ext.commands import Bot
 
 from . import commands, translation
 from .cogs import deejay
@@ -12,7 +13,7 @@ class Akira(Bot):
         self.__test_channel_id = 398636498112741376
         self.__command_prefix = command_prefix
         super().__init__(command_prefix)
-    
+
     async def on_ready(self):
         print(f'{self.user} has connected to Discord!')
 
@@ -22,7 +23,7 @@ class Akira(Bot):
         if self.is_myself(message.author.id):
             # messages sent by me
             return
-        
+
         if self.is_command(message.content):
             # it is a command
             if self.should_ignore():
@@ -54,7 +55,7 @@ class Akira(Bot):
         trans = translation.miau_to_pt(message.content)
         content_translated = f'{message.content}\n  *{trans}*'
         await message.edit(content=content_translated)
-        
+
     def add_commands(self):
         self.add_command(commands.echo)
         self.add_cog(deejay.Deejay(self))

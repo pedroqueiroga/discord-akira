@@ -8,8 +8,10 @@ This module contains utilities to ease the use of Akira's language.
 .. function:: send_with_reaction(message_send, content)
 """
 
-from bidict import bidict
 from enum import Enum
+
+from bidict import bidict
+
 from .utils import is_int
 
 
@@ -21,8 +23,10 @@ class InfoMessages(Enum):
     only one source of truth for Akira's messages.
 
     :attribute str LATER: Akira's feeling lazy.
-    :attribute str NO_VOICE_CHANNEL: The user needs to be in a voice channel but isn't.
-    :attribute str NOT_MY_VOICE_CHANNEL: The user needs to be in Akira's voice channel but isn't.
+    :attribute str NO_VOICE_CHANNEL: The user needs to be in a voice channel
+    but isn't.
+    :attribute str NOT_MY_VOICE_CHANNEL: The user needs to be in Akira's voice
+    channel but isn't.
     :attribute str SKIPPED: Akira skipped a song.
     :attribute str EMPTY_QUEUE: The setlist is empty.
     :attribute str NOT_PLAYING: Akira's not playing anything.
@@ -34,26 +38,29 @@ class InfoMessages(Enum):
     SKIPPED = 'Pulei.'
     EMPTY_QUEUE = 'Setlist vazia.'
     NOT_PLAYING = 'Não estou tocando nada.'
-    
 
-_translation_book = bidict({
-    'miaau.': InfoMessages.LATER,
-    'MIAAAU!!!': InfoMessages.NO_VOICE_CHANNEL,
-    'Miau...': InfoMessages.NOT_MY_VOICE_CHANNEL,
-    'Miau.': InfoMessages.SKIPPED,
-    '...': InfoMessages.EMPTY_QUEUE,
-    '...?': InfoMessages.NOT_PLAYING,
-    'Meow.': 0,
-    'miau?': 1,
-    'miiau!': 2,
-    'miiiau!!': 3,
-    'mivau.': 4,
-    'MVAU.': 5,
-    'mviau.': 6,
-    'mviiau.': 7,
-    'MViiIAU!': 8,
-    'mixau.': 9,
-})
+
+_translation_book = bidict(
+    {
+        'miaau.': InfoMessages.LATER,
+        'MIAAAU!!!': InfoMessages.NO_VOICE_CHANNEL,
+        'Miau...': InfoMessages.NOT_MY_VOICE_CHANNEL,
+        'Miau.': InfoMessages.SKIPPED,
+        '...': InfoMessages.EMPTY_QUEUE,
+        '...?': InfoMessages.NOT_PLAYING,
+        'Meow.': 0,
+        'miau?': 1,
+        'miiau!': 2,
+        'miiiau!!': 3,
+        'mivau.': 4,
+        'MVAU.': 5,
+        'mviau.': 6,
+        'mviiau.': 7,
+        'MViiIAU!': 8,
+        'mixau.': 9,
+    }
+)
+
 
 def miau_to_pt(miau):
     """Translate a miau into a portuguese phrase.
@@ -73,9 +80,10 @@ def miau_to_pt(miau):
         plural = 's' if n > 1 else ''
         translation = f'Preciso de mais {n} voto{plural} para pular.'
         return translation
-    
+
     return _translation_book[miau].value
-    
+
+
 def pt_to_miau(phrase):
     """Translates a phrase into a miau.
 
@@ -88,19 +96,23 @@ def pt_to_miau(phrase):
     """
 
     if not (isinstance(phrase, InfoMessages) or is_int(phrase)):
-        raise TypeError('infomessage should be an int or InfoMessages instance.')
+        raise TypeError(
+            'infomessage should be an int or InfoMessages instance.'
+        )
 
     return _translation_book.inverse[phrase]
+
 
 async def send_with_reaction(message_send, content):
     """Add translation reaction to a message after sending it.
 
     This auxiliary function is used a lot to keep up with Akira's
     message-reaction-control-panel.
-    
-    :param method message_send: A method that sends a message and returns a message.
+
+    :param method message_send: A method that sends a message and returns
+    a message.
     :param str content: The content the message should have.
     """
-    
+
     message = await message_send(content)
     await message.add_reaction('❔')

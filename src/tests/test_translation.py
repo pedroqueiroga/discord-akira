@@ -1,8 +1,14 @@
-from ..translation import *
-from ..translation import _translation_book
 import pytest
 
-class TestTranslation():
+from ..translation import (
+    _translation_book,
+    miau_to_pt,
+    pt_to_miau,
+    InfoMessages,
+)
+
+
+class TestTranslation:
     """Tests for translation.py module"""
 
     def test_miau_to_pt_with_miau(self):
@@ -13,8 +19,8 @@ class TestTranslation():
         for i in range(2):
             miau = _translation_book.inverse[i]
             assert miau_to_pt(miau) == f'Preciso de mais {i} voto para pular.'
-            
-        for i in range(2,10):
+
+        for i in range(2, 10):
             miau = _translation_book.inverse[i]
             assert miau_to_pt(miau) == f'Preciso de mais {i} votos para pular.'
 
@@ -47,10 +53,9 @@ class TestTranslation():
 
     def test_pt_to_miau_without_pt(self):
         for msg in InfoMessages:
-            miau = _translation_book.inverse[msg]
             with pytest.raises(TypeError):
                 pt_to_miau(msg.value)
-        
+
     def test_pt_to_miau_with_invalid_pt(self):
         with pytest.raises(KeyError):
             pt_to_miau(-1)

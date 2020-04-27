@@ -1,6 +1,11 @@
+import os
+
 from dotenv import load_dotenv
 
+load_dotenv()
 
-DEBUG=True
+DEBUG = bool(os.getenv("DEBUG"))
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
-load_dotenv(verbose=DEBUG)
+if not DISCORD_TOKEN:
+    raise Exception("DISCORD_TOKEN not found")

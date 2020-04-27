@@ -5,8 +5,9 @@ def is_int(s):
     try:
         int(s)
         return True
-    except:
+    except Exception:
         return False
+
 
 def seconds_human_friendly(seconds):
     if seconds < 60:
