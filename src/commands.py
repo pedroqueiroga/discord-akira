@@ -1,4 +1,6 @@
 """Module with standalone commands"""
+import datetime
+
 from discord.ext.commands import command
 
 
@@ -10,3 +12,11 @@ async def echo(ctx, *args):
     """
     response = ' '.join(args)
     await ctx.send(response)
+
+
+@command()
+async def uptime(ctx):
+    """Uptime de Akira"""
+    now = datetime.datetime.now(datetime.timezone.utc)
+    td = now - ctx.bot.on_ready_time
+    return await ctx.send(f'Uptime: {td}')

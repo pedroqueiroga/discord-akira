@@ -1,6 +1,7 @@
+import datetime
 import random
 
-from discord.ext.commands import Bot, MissingRequiredArgument
+from discord.ext.commands import Bot, MissingRequiredArgument, command
 
 from . import commands, translation
 from .cogs.deejay import deejay
@@ -15,6 +16,7 @@ class Akira(Bot):
         super().__init__(command_prefix)
 
     async def on_ready(self):
+        self.on_ready_time = datetime.datetime.now(datetime.timezone.utc)
         print(f'{self.user} has connected to Discord!')
 
     async def on_message(self, message):
@@ -67,6 +69,7 @@ class Akira(Bot):
 
     def add_commands(self):
         self.add_command(commands.echo)
+        self.add_command(commands.uptime)
         self.add_cog(deejay.Deejay(self))
 
     def is_myself(self, id):
