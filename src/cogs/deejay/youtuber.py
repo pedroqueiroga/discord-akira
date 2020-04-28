@@ -6,7 +6,7 @@ class Youtuber:
 
     def __init__(self, quiet=True):
         self.ydl_opts = {
-            'quiet': True,
+            'quiet': quiet,
             'default_search': 'ytsearch',
             'format': 'bestaudio/best',
         }
