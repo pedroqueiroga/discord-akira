@@ -88,7 +88,7 @@ class Deejay(Cog):
         else:
             n_to_skip = required_votes - len(self.pula_votes[ctx.guild.id])
             # TODO: logic for any number (right now works for 1-9 only)
-            meow = pt_to_miau(n_to_skip)
+            meow = pt_to_miau(InfoMessages.NEED_MORE_VOTES, n_to_skip)
             await send_with_reaction(ctx.send, meow)
 
     async def request(self, ctx, song):

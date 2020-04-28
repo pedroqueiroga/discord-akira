@@ -46,7 +46,7 @@ class InfoMessages(Enum):
     VOLUME_TOO_LOUD = 'Não posso aumentar o volume tanto assim.'
     VOLUME_TOO_LOW = 'Não posso diminuir o volume para abaixo de zero.'
     COMMAND_MISUSE = 'Não consegui te entender. (tente $help <comando>)'
-    NEED_MORE_VOTES = 'Preciso de mais votos para pular.'
+    NEED_MORE_VOTES = 'Preciso de mais votos para pular:'
 
 
 _translation_book = bidict(
