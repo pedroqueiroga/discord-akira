@@ -292,14 +292,17 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def volume(self, ctx: discord.ext.commands.Context, volume=None):
+    async def volume(
+        self, ctx: discord.ext.commands.Context, requested_volume=None
+    ):
         """Dita o volume da discotecagem de Akira.
 
-        Aceita apenas um argumento, o volume, que deve ser de 0 a 200.
-        0 muta o bot, 100 coloca no volume original, 200 coloca no dobro do
-        volume original.
+        Aceita apenas um argumento, o volume, que deve ser de 0 a 11.
+        0 muta o bot, 10 coloca no volume original, 11 coloca no dobro do
+        volume original. Alternativemente, se for da forma +x, ou -x, aumenta
+        ou diminui o volume em x. Vai até 11.
 
-        :param str args: volume
+        :param str args: mudança de volume
         """
 
         if not self.is_playing_guild(ctx.guild):
@@ -307,20 +310,69 @@ class Deejay(Cog):
             return await send_with_reaction(ctx.send, miau)
 
         audio_source = ctx.voice_client.source
-        old_volume = audio_source.volume
+        current_volume = audio_source.volume
 
-        if volume is None:
-            miau = number_to_miau(round(old_volume * 100))
+        if requested_volume is None:
+            # if no volume is requested, print current volume human-friendly
+            whole_current_volume = self.from_decimal_volume(current_volume)
+            miau = number_to_miau(whole_current_volume)
             return await send_with_reaction(ctx.send, miau)
 
-        if not is_int(volume) or int(volume) > 200 or int(volume) < 0:
+        if not is_int(requested_volume):
             miau = pt_to_miau(InfoMessages.INVALID_VOLUME)
             return await send_with_reaction(ctx.send, miau)
 
-        new_volume = int(volume) / 100
-        audio_source.volume = new_volume
-        miau = pt_to_miau(InfoMessages.CHANGED_VOLUME)
-        diff_volume = new_volume - old_volume
-        return await send_with_reaction(
-            ctx.send, miau + ' ' + str(diff_volume)
+        new_volume, diff_volume = self.get_new_volume(
+            current_volume,
+            int(requested_volume),
+            self.is_requested_volume_diff(requested_volume),
         )
+
+        # validating new volume against maximum and minimum volumes
+        if new_volume > 2:
+            miau = pt_to_miau(InfoMessages.VOLUME_TOO_LOUD)
+            return await send_with_reaction(ctx.send, miau)
+        if new_volume < 0:
+            miau = pt_to_miau(InfoMessages.VOLUME_TOO_LOW)
+            return await send_with_reaction(ctx.send, miau)
+
+        # new volume ok, finally commit the change
+        audio_source.volume = new_volume
+
+        if diff_volume > 0:
+            miau = pt_to_miau(InfoMessages.INCREASED_VOLUME, abs(diff_volume))
+        elif diff_volume < 0:
+            miau = pt_to_miau(InfoMessages.DECREASED_VOLUME, abs(diff_volume))
+        else:
+            miau = pt_to_miau(InfoMessages.NO_VOLUME_CHANGE)
+
+        # this method is quite long, it is mostly verifications
+        return await send_with_reaction(ctx.send, miau)
+
+    def get_new_volume(self, current_volume, volume, diff=False):
+        whole_current_volume = self.from_decimal_volume(current_volume)
+        if diff:
+            new_volume = whole_current_volume + volume
+        else:
+            new_volume = volume
+
+        diff_volume = new_volume - whole_current_volume
+
+        return (
+            self.to_decimal_volume(new_volume),
+            diff_volume,
+        )
+
+    def is_requested_volume_diff(self, requested_volume):
+        return requested_volume.startswith('+') or requested_volume.startswith(
+            '-'
+        )
+
+    def from_decimal_volume(self, volume):
+        whole_volume = round(volume * 10)
+        if whole_volume < 20 and whole_volume > 11:
+            raise Exception("Invalid Volume")
+        return 11 if whole_volume == 20 else whole_volume
+
+    def to_decimal_volume(self, volume):
+        return ((volume + 9) if volume > 10 else volume) / 10

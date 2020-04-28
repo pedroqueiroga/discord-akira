@@ -13,6 +13,7 @@ from enum import Enum
 from bidict import bidict
 
 from .utils import is_int
+from .roman import fromRoman, toRoman
 
 
 class InfoMessages(Enum):
@@ -38,6 +39,14 @@ class InfoMessages(Enum):
     SKIPPED = 'Pulei.'
     EMPTY_QUEUE = 'Setlist vazia.'
     NOT_PLAYING = 'Não estou tocando nada.'
+    INVALID_VOLUME = 'Esse volume não fez sentido para mim.'
+    INCREASED_VOLUME = 'Aumentei o volume em'
+    DECREASED_VOLUME = 'Abaixei o volume em'
+    NO_VOLUME_CHANGE = 'Não alterei o volume.'
+    VOLUME_TOO_LOUD = 'Não posso aumentar o volume tanto assim.'
+    VOLUME_TOO_LOW = 'Não posso diminuir o volume para abaixo de zero.'
+    COMMAND_MISUSE = 'Não consegui te entender. (tente $help <comando>)'
+    NEED_MORE_VOTES = 'Preciso de mais votos para pular.'
 
 
 _translation_book = bidict(
@@ -48,21 +57,20 @@ _translation_book = bidict(
         'Miau.': InfoMessages.SKIPPED,
         '...': InfoMessages.EMPTY_QUEUE,
         '...?': InfoMessages.NOT_PLAYING,
+        'rrrr.': InfoMessages.INVALID_VOLUME,
+        'RRRR!!': InfoMessages.VOLUME_TOO_LOUD,
+        'rrrr...': InfoMessages.VOLUME_TOO_LOW,
+        'Mrrau!!': InfoMessages.INCREASED_VOLUME,
+        'Mrrau...': InfoMessages.DECREASED_VOLUME,
+        'Mrrau.': InfoMessages.NO_VOLUME_CHANGE,
+        '????': InfoMessages.COMMAND_MISUSE,
         'Meow.': 0,
-        'miau?': 1,
-        'miiau!': 2,
-        'miiiau!!': 3,
-        'mivau.': 4,
-        'MVAU.': 5,
-        'mviau.': 6,
-        'mviiau.': 7,
-        'MViiIAU!': 8,
-        'mixau.': 9,
+        'Miauau.': InfoMessages.NEED_MORE_VOTES,
     }
 )
 
 
-def miau_to_pt(miau):
+def miau_to_pt(miau: str):
     """Translate a miau into a portuguese phrase.
 
     :param str miau: The miau to be translated.
@@ -75,20 +83,30 @@ def miau_to_pt(miau):
     if type(miau) != str:
         raise TypeError('miau should be a string.')
 
-    if is_int(_translation_book[miau]):
-        n = int(_translation_book[miau])
-        plural = 's' if n > 1 else ''
-        translation = f'Preciso de mais {n} voto{plural} para pular.'
-        return translation
+    splitted = miau.split(' ')
+    if len(splitted) == 2:
+        # then we are dealing with a miau numeral
+        miau = splitted[0]
+        n_miau = splitted[1]
+        n = miau_to_number(n_miau)
+        translation = _translation_book[miau].value
+        return f'{translation} {n}'
+    elif len(splitted) == 1:
+        try:
+            translation = _translation_book[miau].value
+        except (KeyError, AttributeError):
+            # could be a miau numeral
+            translation = miau_to_number(miau)
 
-    return _translation_book[miau].value
+    return translation
 
 
-def pt_to_miau(phrase):
-    """Translates a phrase into a miau.
+def pt_to_miau(phrase: str, n=None):
+    """Translates a phrase [and number] into a miau.
 
     :param phrase: The phrase to be translated.
     :type phrase: int or InfoMessage instance.
+    :param int n: optional. a number to be translated into miau
     :returns: a portuguese phrase written in miau.
     :rtype: str
     :raises TypeError: if the phrase is not a string.
@@ -100,7 +118,39 @@ def pt_to_miau(phrase):
             'infomessage should be an int or InfoMessages instance.'
         )
 
-    return _translation_book.inverse[phrase]
+    translation = _translation_book.inverse[phrase]
+    if n is not None:
+        n_miau = number_to_miau(int(n))
+        return f'{translation} {n_miau}'
+    return translation
+
+
+def number_to_miau(n: int):
+    """Translates a number into a miau.
+
+    :param int n: The number to be translated.
+    :returns: n written in miau
+    :rtype: str
+    """
+    if n == 0:
+        return _translation_book.inverse[0]
+    roman = toRoman(n)
+    return f'M{roman}AU.'
+
+
+def miau_to_number(miau: str):
+    """Translates a miau into a number.
+
+    :param str miau: The miau to be translated.
+    :returns: miau as an intenger.
+    :rtype: int
+    """
+    # remove M and AU.
+    if miau == _translation_book.inverse[0]:
+        return 0
+    roman = miau[1:-3]
+    n = fromRoman(roman)
+    return n
 
 
 async def send_with_reaction(message_send, content):

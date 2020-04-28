@@ -63,7 +63,7 @@ class Akira(Bot):
             )
             await translation.send_with_reaction(ctx.send, miau)
         else:
-            print(exception)
+            raise exception
 
     def add_commands(self):
         self.add_command(commands.echo)
