@@ -1,6 +1,6 @@
 import random
 
-from discord.ext.commands import Bot
+from discord.ext.commands import Bot, MissingRequiredArgument
 
 from . import commands, translation
 from .cogs.deejay import deejay
@@ -55,6 +55,15 @@ class Akira(Bot):
         trans = translation.miau_to_pt(message.content)
         content_translated = f'{message.content}\n  *{trans}*'
         await message.edit(content=content_translated)
+
+    async def on_command_error(self, ctx, exception):
+        if isinstance(exception, MissingRequiredArgument):
+            miau = translation.pt_to_miau(
+                translation.InfoMessages.COMMAND_MISUSE
+            )
+            await translation.send_with_reaction(ctx.send, miau)
+        else:
+            print(exception)
 
     def add_commands(self):
         self.add_command(commands.echo)

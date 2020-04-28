@@ -5,8 +5,13 @@ from collections import deque
 import discord
 from discord.ext.commands import Cog, command, guild_only
 
-from ...translation import InfoMessages, pt_to_miau, send_with_reaction
-from ...utils import seconds_human_friendly
+from ...translation import (
+    InfoMessages,
+    pt_to_miau,
+    send_with_reaction,
+    number_to_miau,
+)
+from ...utils import seconds_human_friendly, is_int
 from .youtuber import Youtuber
 
 
@@ -90,7 +95,7 @@ class Deejay(Cog):
         call_play = False
         if not ctx.guild.voice_client:
             # the bot does not have a VoiceClient on this guild
-            voice_client = await self.get_voice_client(ctx)
+            voice_client = await self.connect_to_user_voice_client(ctx.author)
             if not voice_client:
                 meow = pt_to_miau(InfoMessages.NO_VOICE_CHANNEL)
                 await send_with_reaction(ctx.send, meow)
@@ -154,14 +159,21 @@ class Deejay(Cog):
         self.current_songs[guild.id] = next_song_info
 
     def is_playing_guild(self, guild):
+        """Decides if the Akira is playing an Audio Source in this guild.
+
+        :param discord.Guild guild: Guild to check
+        :returns: True if Akira is playing in guild.
+        :rtype: bool
+
+        """
         if guild.voice_client:
             return guild.voice_client.is_playing()
         else:
             return False
 
-    async def get_voice_client(self, ctx):
-        if ctx.author.voice:
-            return await ctx.author.voice.channel.connect()
+    async def connect_to_user_voice_client(self, user):
+        if user.voice:
+            return await user.voice.channel.connect()
 
     def get_setlist_titles(self, guild_id, current=False, n=None):
         current_song = self.current_songs.get(guild_id)
@@ -277,3 +289,38 @@ class Deejay(Cog):
             self.setlists[guild_id],
             current_song,
         )['duration']
+
+    @command()
+    @guild_only()
+    async def volume(self, ctx: discord.ext.commands.Context, volume=None):
+        """Dita o volume da discotecagem de Akira.
+
+        Aceita apenas um argumento, o volume, que deve ser de 0 a 200.
+        0 muta o bot, 100 coloca no volume original, 200 coloca no dobro do
+        volume original.
+
+        :param str args: volume
+        """
+
+        if not self.is_playing_guild(ctx.guild):
+            miau = pt_to_miau(InfoMessages.NOT_PLAYING)
+            return await send_with_reaction(ctx.send, miau)
+
+        audio_source = ctx.voice_client.source
+        old_volume = audio_source.volume
+
+        if volume is None:
+            miau = number_to_miau(round(old_volume * 100))
+            return await send_with_reaction(ctx.send, miau)
+
+        if not is_int(volume) or int(volume) > 200 or int(volume) < 0:
+            miau = pt_to_miau(InfoMessages.INVALID_VOLUME)
+            return await send_with_reaction(ctx.send, miau)
+
+        new_volume = int(volume) / 100
+        audio_source.volume = new_volume
+        miau = pt_to_miau(InfoMessages.CHANGED_VOLUME)
+        diff_volume = new_volume - old_volume
+        return await send_with_reaction(
+            ctx.send, miau + ' ' + str(diff_volume)
+        )
