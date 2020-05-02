@@ -10,10 +10,36 @@ class TicTacToe(Cog):
         self.games = {}
 
     @command()
-    async def tictactoe(self, ctx):
-        pass
+    async def tictactoe(self, ctx, move=None):
+        player = ctx.message.author.id
+        if move is None:
+            if player in self.games:
+                # game is ongoing, simply tell player to move
+                await ctx.send('Já estamos jogando. Informe sua jogada!')
+                await ctx.send(self.formatted_table(player))
+
+            # start a new game
+            self.init_table(player)
+            await ctx.send('Iniciamos um novo jogo.')
+            await ctx.send(self.formatted_table(player))
+            return
+
+        try:
+            self.games[player].make_move(move)
+            await ctx.send(self.formatted_table(player))
+        except OccupiedCell:
+            await ctx.send('Essa casa já está ocupada!')
+            await ctx.send(self.formatted_table(player))
+        except InvalidMove:
+            await ctx.send(
+                'Movimento inválido. Exemplos válidos: oa1; xc3; OB2'
+            )
+
+    def formatted_table(self, player):
+        return '```' + str(self.games[player]) + '```'
 
     def init_table(self, player):
+        self.games[player] = TicTacToeTable()
         return self.games[player]
 
     def delete_table(self, player):
