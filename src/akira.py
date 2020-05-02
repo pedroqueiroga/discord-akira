@@ -5,7 +5,7 @@ from discord.ext.commands import Bot, MissingRequiredArgument
 
 from . import commands, translation
 from .cogs.deejay import deejay
-from .cogs.tictactoe import tictactoe
+from .cogs.jogodavelha import jogodavelha
 
 
 class Akira(Bot):
@@ -72,7 +72,7 @@ class Akira(Bot):
         self.add_command(commands.echo)
         self.add_command(commands.uptime)
         self.add_cog(deejay.Deejay(self))
-        self.add_cog(tictactoe.TicTacToe(self))
+        self.add_cog(jogodavelha.JogoDaVelha(self))
 
     def is_myself(self, id):
         """Decides if id is myself's id"""
