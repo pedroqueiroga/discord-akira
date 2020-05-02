@@ -36,7 +36,7 @@ class Akira(Bot):
                 await self.process_commands(message)
 
     async def on_raw_reaction_add(self, payload):
-        if self.is_myself(payload.member.id):
+        if self.is_myself(payload.user_id):
             # reaction added by me
             return
 
