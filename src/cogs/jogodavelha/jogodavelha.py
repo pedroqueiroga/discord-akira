@@ -18,6 +18,10 @@ class JogoDaVelha(Cog):
 
     @command()
     async def jdv(self, ctx, move=None):
+        """Joga jogo da velha com Akira.
+        Apenas $jdv pede para Akira jogar primeiro. Para jogar primeiro,
+        $jdv <jogada>. Jogadas são do tipo <PEÇA><COLUNA><LINHA>.
+        Exemplo: xa1 (XA1, Xa1, xA1); Xc2, Ob3."""
         player = ctx.message.author.id
         if move is None:
             if player in self.games:
