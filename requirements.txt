@@ -10,6 +10,7 @@ idna==2.9
 importlib-metadata==1.6.0
 more-itertools==8.2.0
 multidict==4.7.5
+numpy==1.18.3
 packaging==20.3
 pluggy==0.13.1
 py==1.8.1
