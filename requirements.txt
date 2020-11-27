@@ -26,5 +26,5 @@ typing-extensions==3.7.4.3
 wcwidth==0.2.5
 websockets==8.1
 yarl==1.6.3
-youtube-dl==2020.11.12
+youtube-dl==2020.11.26
 zipp==3.4.0

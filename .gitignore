@@ -10,7 +10,7 @@ config/.env
 *.pyc
 *.pyo
 __pycache__/
-
+.mypy_cache/
 
 # general
 *.log

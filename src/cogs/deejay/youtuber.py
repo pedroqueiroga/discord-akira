@@ -9,6 +9,7 @@ class Youtuber:
             'quiet': quiet,
             'default_search': 'ytsearch',
             'format': 'bestaudio/best',
+            'youtube_include_dash_manifest': False,
         }
 
     def get_video_info(self, search_url, download=False):
