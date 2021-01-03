@@ -45,7 +45,8 @@ class Deejay(Cog):
             meow = pt_to_miau(InfoMessages.EMPTY_QUEUE)
             await send_with_reaction(ctx.send, meow)
         else:
-            await ctx.send(embed=self.get_fila_embed(ctx.guild.id))
+            fila_embed = self.get_fila_embed(ctx.guild.id)
+            await ctx.send(embed=fila_embed)
 
     @command()
     @guild_only()
@@ -110,9 +111,10 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
             return
 
-        video_info = self.youtuber.get_video_info(song)
-        self.setlists_append(ctx.author, ctx.guild.id, video_info)
-        embed = self.get_toca_embed(ctx.author, video_info)
+        videos = self.youtuber.get_video_info(song)
+        for video_info in videos:
+            self.setlists_append(ctx.author, ctx.guild.id, video_info)
+        embed = self.get_toca_embed(ctx.author, videos[0])
         await ctx.send(embed=embed)
 
         if call_play:
@@ -250,7 +252,16 @@ class Deejay(Cog):
         titles_links = self.get_setlist_titles_links_formatted(
             guild_id, current=False
         )
-        joined_titles_links = '\n'.join(titles_links)
+        titles_links_included = []
+        total_len = 0
+        for tl in titles_links:
+            if total_len > 1500:
+                break
+
+            total_len += len(tl)
+            titles_links_included.append(tl)
+
+        joined_titles_links = '\n'.join(titles_links_included)
         total_duration = seconds_human_friendly(
             self.total_setlist_duration(guild_id)
         )
@@ -266,11 +277,18 @@ class Deejay(Cog):
             else ''
         )
 
+        listed_songs_diff = len(titles_links) - len(titles_links_included)
+
+        if listed_songs_diff > 0:
+            next_str += f'\n... e mais {listed_songs_diff}'
+
+        description = f'{current_song_duration_str}{next_str}'
+
         embed = (
             discord.Embed(
                 title=current_song['title'],
                 url=current_song['webpage_url'],
-                description=f'{current_song_duration_str}{next_str}',
+                description=description,
             )
             .set_author(
                 name=total_duration_str,

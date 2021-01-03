@@ -1,3 +1,4 @@
+import validators
 import youtube_dl
 
 
@@ -10,10 +11,11 @@ class Youtuber:
             'default_search': 'ytsearch',
             'format': 'bestaudio/best',
             'youtube_include_dash_manifest': False,
+            'ignoreerrors': True,
         }
 
     def get_video_info(self, search_url, download=False):
-        """Information for a video from a URL or search string.
+        """Information for video(s) from a URL or search string.
 
         :param str search_url: A search string or URL for youtube.
         :param bool download: If the video should be downloaded.
@@ -21,18 +23,28 @@ class Youtuber:
         :rtype: dict
         """
 
-        video_info = {}
+        videos = []
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-            video = ydl.extract_info(search_url, download=False)
+            result = ydl.extract_info(search_url, download=False)
+            found_videos = []
+            if validators.url(search_url) and 'entries' in result.keys():
+                found_videos = result['entries']
+            elif 'entries' in result.keys():
+                # multiple videos from search sting, take first
+                found_videos = [result['entries'][0]]
+            else:
+                found_videos = [result]
 
-            if 'entries' in video.keys():
-                # multiple videos, take first
-                video = video['entries'][0]
+            for video in found_videos:
+                video_info = {}
+                try:
+                    video_info['source_url'] = video['formats'][0]['url']
+                    video_info['title'] = video['title']
+                    video_info['webpage_url'] = video['webpage_url']
+                    video_info['duration'] = video['duration']
+                    video_info['thumbnail'] = video['thumbnail']
+                    videos.append(video_info)
+                except Exception as e:
+                    pass
 
-            video_info['source_url'] = video['formats'][0]['url']
-            video_info['title'] = video['title']
-            video_info['webpage_url'] = video['webpage_url']
-            video_info['duration'] = video['duration']
-            video_info['thumbnail'] = video['thumbnail']
-
-        return video_info
+        return videos

@@ -28,3 +28,4 @@ websockets==8.1
 yarl==1.6.3
 youtube-dl==2020.12.7
 zipp==3.4.0
+validators==0.18.2
