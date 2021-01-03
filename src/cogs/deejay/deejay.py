@@ -75,8 +75,10 @@ class Deejay(Cog):
         n_members = len(ctx.voice_client.channel.members)
         required_votes = math.floor(1 / 3 * (n_members - 1))  # 1 is the bot
 
-        if len(self.pula_votes[ctx.guild.id]) >= required_votes:
-            # 1/3 of the voice channel members voted to skip the song
+        if (
+            len(self.pula_votes[ctx.guild.id]) >= required_votes
+            or current_song['requester_id'] == ctx.author.id
+        ):
             ctx.voice_client.pause()
             self.play_next(ctx.guild)
             meow = pt_to_miau(InfoMessages.SKIPPED)
@@ -109,14 +111,15 @@ class Deejay(Cog):
             return
 
         video_info = self.youtuber.get_video_info(song)
-        self.setlists_append(ctx.guild.id, video_info)
+        self.setlists_append(ctx.author, ctx.guild.id, video_info)
         embed = self.get_toca_embed(ctx.author, video_info)
         await ctx.send(embed=embed)
 
         if call_play:
             self.play_next(ctx.guild)
 
-    def setlists_append(self, guild_id, obj):
+    def setlists_append(self, author, guild_id, obj):
+        obj['requester_id'] = author.id
         if self.setlists.get(guild_id):
             # the guild has a non-empty setlist
             self.setlists[guild_id].append(obj)
