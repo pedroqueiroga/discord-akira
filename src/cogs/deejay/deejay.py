@@ -1,17 +1,14 @@
 import asyncio
 import functools
+import math
 from collections import deque
 
 import discord
 from discord.ext.commands import Cog, command, guild_only
 
-from ...translation import (
-    InfoMessages,
-    pt_to_miau,
-    send_with_reaction,
-    number_to_miau,
-)
-from ...utils import seconds_human_friendly, is_int
+from ...translation import (InfoMessages, number_to_miau, pt_to_miau,
+                            send_with_reaction)
+from ...utils import is_int, seconds_human_friendly
 from .youtuber import Youtuber
 
 
@@ -76,10 +73,10 @@ class Deejay(Cog):
         self.pula_votes[ctx.guild.id].add(ctx.author.id)
 
         n_members = len(ctx.voice_client.channel.members)
-        required_votes = 1 / 3 * (n_members - 1)  # 1 is the bot
+        required_votes = math.floor(1 / 3 * (n_members - 1))  # 1 is the bot
 
         if len(self.pula_votes[ctx.guild.id]) >= required_votes:
-            # 1/3 plus of the voice channel members voted to skip the song
+            # 1/3 of the voice channel members voted to skip the song
             ctx.voice_client.pause()
             self.play_next(ctx.guild)
             meow = pt_to_miau(InfoMessages.SKIPPED)
