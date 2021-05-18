@@ -91,6 +91,14 @@ class Deejay(Cog):
             meow = pt_to_miau(InfoMessages.NEED_MORE_VOTES, n_to_skip)
             await send_with_reaction(ctx.send, meow)
 
+    @command()
+    @guild_only()
+    async def limpa(self, ctx):
+        """Limpa a fila.
+        Este comando limpa a fila e pronto."""
+        self.setlists[ctx.guild.id] = []
+        await ctx.send('foda-se')
+
     async def request(self, ctx, song):
         call_play = False
         if not ctx.guild.voice_client:
