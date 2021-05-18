@@ -1,6 +1,7 @@
 import asyncio
 import functools
 import math
+import time
 from collections import deque
 
 import discord
@@ -21,6 +22,7 @@ class Deejay(Cog):
         self.current_songs = {}
         self.pula_votes = {}
         self.youtuber = Youtuber()
+        self.stopped_playing_timestamp = None
 
     @command()
     @guild_only()
@@ -125,7 +127,10 @@ class Deejay(Cog):
         embed = self.get_toca_embed(ctx.author, videos[0])
         await ctx.send(embed=embed)
 
-        if call_play:
+        if call_play or (
+            (self.stopped_playing_timestamp is not None)
+            and len(self.setlists[ctx.guild.id]) > 0
+        ):
             self.play_next(ctx.guild)
 
     def setlists_append(self, author, guild_id, obj):
@@ -145,9 +150,10 @@ class Deejay(Cog):
             self.current_songs[guild.id] = None
             return
         if len(self.setlists[guild.id]) == 0:
-            # if the queue is empty, disconnect
+            self.stopped_playing_timestamp = time.monotonic()
+            # if the queue is empty, disconnect after 10 minutes
             asyncio.run_coroutine_threadsafe(
-                voice_client.disconnect(), self.bot.loop
+                self._trigger_disconnect(voice_client, guild), self.bot.loop
             )
             self.current_songs[guild.id] = None
             return
@@ -163,6 +169,8 @@ class Deejay(Cog):
         )
 
         voice_client.play(audio_source, after=lambda _: self.play_next(guild))
+
+        self.stopped_playing_timestamp = None
 
         # create clean pula votes for this fresh song
         self.pula_votes[guild.id] = set()
@@ -402,3 +410,19 @@ class Deejay(Cog):
 
     def to_decimal_volume(self, volume):
         return ((volume + 9) if volume > 10 else volume) / 10
+
+    async def _trigger_disconnect(self, voice_client, guild):
+        ten_minutes = 600  # seconds
+
+        await asyncio.sleep(ten_minutes)
+
+        if len(self.setlists[guild.id]) > 0 or (
+            self.stopped_playing_timestamp is None
+        ):
+            return
+
+        time_since_stop = time.monotonic() - self.stopped_playing_timestamp
+
+        if time_since_stop >= ten_minutes:
+            await voice_client.disconnect()
+            self.stopped_playing_timestamp = None
