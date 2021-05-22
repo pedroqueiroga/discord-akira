@@ -37,6 +37,7 @@ class InfoMessages(Enum):
     NO_VOICE_CHANNEL = 'Você não está em nenhum canal de voz.'
     NOT_MY_VOICE_CHANNEL = 'Você não está no meu canal de voz.'
     SKIPPED = 'Pulei.'
+    SKIPPED_SPECIFIC = 'Removi:'
     EMPTY_QUEUE = 'Setlist vazia.'
     NOT_PLAYING = 'Não estou tocando nada.'
     INVALID_VOLUME = 'Esse volume não fez sentido para mim.'
@@ -56,6 +57,7 @@ _translation_book = bidict(
         'MIAAAU!!!': InfoMessages.NO_VOICE_CHANNEL,
         'Miau...': InfoMessages.NOT_MY_VOICE_CHANNEL,
         'Miau.': InfoMessages.SKIPPED,
+        'Mierrrh!': InfoMessages.SKIPPED_SPECIFIC,
         '...': InfoMessages.EMPTY_QUEUE,
         '...?': InfoMessages.NOT_PLAYING,
         'rrrr.': InfoMessages.INVALID_VOLUME,

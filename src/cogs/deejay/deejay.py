@@ -97,7 +97,7 @@ class Deejay(Cog):
         ):
             meow = None
             if position > 0:
-                meow = f"Mierrrh {song_to_skip['title']}"
+                meow = pt_to_miau(InfoMessages.SKIPPED_SPECIFIC)
                 del setlist[position - 1]
             else:
                 ctx.voice_client.pause()
