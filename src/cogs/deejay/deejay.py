@@ -265,8 +265,8 @@ class Deejay(Cog):
 
         titles.extend(
             [
-                f"[{s['title']}]({s['webpage_url']})"
-                for s in self.setlists[guild_id]
+                f"{idx+1}. [{s['title']}]({s['webpage_url']})"
+                for idx, s in enumerate(self.setlists[guild_id])
             ]
         )
         return titles
