@@ -1,11 +1,25 @@
+import asyncio
+
 from config import settings
 from src.akira import Akira
 
 
-ak = Akira()
+def main():
+    ak = Akira()
+    ak.add_commands()
 
-ak.add_commands()
+    ak.run(settings.DISCORD_TOKEN)
 
-ak.run(settings.DISCORD_TOKEN)
+    print('cleaning up...')
 
-print('fim?')
+    clean_up(ak)
+
+    print('fim?')
+
+
+def clean_up(ak):
+    asyncio.run(ak.close())
+    print('logged out')
+
+
+main()
