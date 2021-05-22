@@ -84,9 +84,13 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
             return
 
-        # position-1 because user will input as 1-indexed list
-        song_to_skip = setlist[position - 1]
-        song_to_skip['pula_votes'].add(ctx.author.id)
+        song_to_skip = None
+        if position == 0:
+            song_to_skip = current_song
+        else:
+            # position-1 because user will input as 1-indexed list
+            song_to_skip = setlist[position - 1]
+            song_to_skip['pula_votes'].add(ctx.author.id)
 
         n_members = len(ctx.voice_client.channel.members)
         required_votes = math.floor(1 / 3 * (n_members - 1))  # 1 is the bot
