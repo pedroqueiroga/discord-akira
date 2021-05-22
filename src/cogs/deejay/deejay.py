@@ -67,6 +67,13 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
             return
 
+        setlist = self.setlists[ctx.guild.id]
+
+        if position < 0 or position > len(setlist):
+            meow = pt_to_miau(InfoMessages.INVALID_QUEUE_POSITION)
+            await send_with_reaction(ctx.send, meow)
+            return
+
         # only accept requests from members in the same voice channel
         # except if whoever wants to skip requested the song
         if (
@@ -77,7 +84,6 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
             return
 
-        setlist = self.setlists[ctx.guild.id]
         # position-1 because user will input as 1-indexed list
         song_to_skip = setlist[position - 1]
         song_to_skip['pula_votes'].add(ctx.author.id)

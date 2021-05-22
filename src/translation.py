@@ -12,8 +12,8 @@ from enum import Enum
 
 from bidict import bidict
 
-from .utils import is_int
 from .roman import fromRoman, toRoman
+from .utils import is_int
 
 
 class InfoMessages(Enum):
@@ -47,6 +47,7 @@ class InfoMessages(Enum):
     VOLUME_TOO_LOW = 'Não posso diminuir o volume para abaixo de zero.'
     COMMAND_MISUSE = 'Não consegui te entender. (tente $help <comando>)'
     NEED_MORE_VOTES = 'Preciso de mais votos para pular:'
+    INVALID_QUEUE_POSITION = 'Posição na fila inválida...'
 
 
 _translation_book = bidict(
@@ -66,6 +67,7 @@ _translation_book = bidict(
         '????': InfoMessages.COMMAND_MISUSE,
         'Meow.': 0,
         'Miauau.': InfoMessages.NEED_MORE_VOTES,
+        'mierr?': InfoMessages.INVALID_QUEUE_POSITION,
     }
 )
 
