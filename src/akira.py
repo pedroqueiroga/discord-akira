@@ -71,6 +71,7 @@ class Akira(Bot):
     def add_commands(self):
         self.add_command(commands.echo)
         self.add_command(commands.uptime)
+        self.add_command(commands.codiguis)
         self.add_cog(deejay.Deejay(self))
         self.add_cog(jogodavelha.JogoDaVelha(self))
 

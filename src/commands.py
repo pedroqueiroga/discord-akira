@@ -20,3 +20,10 @@ async def uptime(ctx):
     now = datetime.datetime.now(datetime.timezone.utc)
     td = now - ctx.bot.on_ready_time
     await ctx.send(f'Uptime: {td}')
+
+
+@command()
+async def codiguis(ctx):
+    """Informa onde o código de Akira está hospedado"""
+    localizacao = 'https://github.com/pedroqueiroga/discord-akira'
+    await ctx.send(localizacao)
