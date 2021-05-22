@@ -121,7 +121,8 @@ class Deejay(Cog):
 
     async def request(self, ctx, song):
         call_play = False
-        if not ctx.guild.voice_client:
+        voice_client = ctx.guild.voice_client
+        if not voice_client:
             # the bot does not have a VoiceClient on this guild
             voice_client = await self.connect_to_user_voice_client(ctx.author)
             if not voice_client:
@@ -145,16 +146,17 @@ class Deejay(Cog):
             meow = pt_to_miau(InfoMessages.INVALID_URL)
             await send_with_reaction(ctx.send, meow)
             return
+        except IndexError:
+            meow = pt_to_miau(InfoMessages.NO_VIDEO_FOUND)
+            await send_with_reaction(ctx.send, meow)
+            return
 
         for video_info in videos:
             self.setlists_append(ctx.author, ctx.guild.id, video_info)
         embed = self.get_toca_embed(ctx.author, videos[0])
         await ctx.send(embed=embed)
 
-        if call_play or (
-            (self.stopped_playing_timestamp is not None)
-            and len(self.setlists[ctx.guild.id]) > 0
-        ):
+        if self.should_start_playing(voice_client):
             self.play_next(ctx.guild)
 
     def setlists_append(self, author, guild_id, obj):
@@ -193,11 +195,19 @@ class Deejay(Cog):
             )
         )
 
-        voice_client.play(audio_source, after=lambda _: self.play_next(guild))
+        try:
+            voice_client.play(
+                audio_source, after=lambda _: self.play_next(guild)
+            )
 
-        self.stopped_playing_timestamp = None
+            self.stopped_playing_timestamp = None
 
-        self.current_songs[guild.id] = next_song_info
+            self.current_songs[guild.id] = next_song_info
+        except discord.ClientException:
+            if voice_client.is_playing():
+                print(
+                    f'tried to play {next_song_info}, but i am already playing {current_songs[guild.id]}'
+                )
 
     def is_playing_guild(self, guild):
         """Decides if the Akira is playing an Audio Source in this guild.
@@ -449,3 +459,6 @@ class Deejay(Cog):
         if time_since_stop >= ten_minutes:
             await voice_client.disconnect()
             self.stopped_playing_timestamp = None
+
+    def should_start_playing(self, voice_client: discord.VoiceClient):
+        return not voice_client.is_playing()

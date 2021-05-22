@@ -50,6 +50,7 @@ class InfoMessages(Enum):
     NEED_MORE_VOTES = 'Preciso de mais votos para pular:'
     INVALID_QUEUE_POSITION = 'Posição na fila inválida...'
     INVALID_URL = 'URL INVÁLIDA!!'
+    NO_VIDEO_FOUND = 'Nenhum vídeo encontrado.'
 
 
 _translation_book = bidict(
@@ -72,6 +73,7 @@ _translation_book = bidict(
         'Miauau.': InfoMessages.NEED_MORE_VOTES,
         'mierr?': InfoMessages.INVALID_QUEUE_POSITION,
         'AUAU!!': InfoMessages.INVALID_URL,
+        'mmmm...': InfoMessages.NO_VIDEO_FOUND,
     }
 )
 
