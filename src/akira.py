@@ -1,7 +1,7 @@
 import datetime
 import random
 
-from discord.ext.commands import Bot, MissingRequiredArgument
+from discord.ext.commands import BadArgument, Bot, MissingRequiredArgument
 
 from . import commands, translation
 from .cogs.deejay import deejay
@@ -60,7 +60,9 @@ class Akira(Bot):
         await message.edit(content=content_translated)
 
     async def on_command_error(self, ctx, exception):
-        if isinstance(exception, MissingRequiredArgument):
+        if isinstance(exception, MissingRequiredArgument) or isinstance(
+            exception, BadArgument
+        ):
             miau = translation.pt_to_miau(
                 translation.InfoMessages.COMMAND_MISUSE
             )
