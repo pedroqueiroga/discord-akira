@@ -139,7 +139,13 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
             return
 
-        videos = self.youtuber.get_video_info(song)
+        try:
+            videos = self.youtuber.get_video_info(song)
+        except AttributeError:
+            meow = pt_to_miau(InfoMessages.INVALID_URL)
+            await send_with_reaction(ctx.send, meow)
+            return
+
         for video_info in videos:
             self.setlists_append(ctx.author, ctx.guild.id, video_info)
         embed = self.get_toca_embed(ctx.author, videos[0])

@@ -49,6 +49,7 @@ class InfoMessages(Enum):
     COMMAND_MISUSE = 'Não consegui te entender. (tente $help <comando>)'
     NEED_MORE_VOTES = 'Preciso de mais votos para pular:'
     INVALID_QUEUE_POSITION = 'Posição na fila inválida...'
+    INVALID_URL = 'URL INVÁLIDA!!'
 
 
 _translation_book = bidict(
@@ -70,6 +71,7 @@ _translation_book = bidict(
         'Meow.': 0,
         'Miauau.': InfoMessages.NEED_MORE_VOTES,
         'mierr?': InfoMessages.INVALID_QUEUE_POSITION,
+        'AUAU!!': InfoMessages.INVALID_URL,
     }
 )
 
