@@ -20,7 +20,6 @@ class Deejay(Cog):
         self.bot = bot
         self.setlists = {}
         self.current_songs = {}
-        self.pula_votes = {}
         self.youtuber = Youtuber()
         self.stopped_playing_timestamp = None
 
@@ -52,10 +51,13 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def pula(self, ctx):
-        """Vota para pular a música atual.
+    async def pula(self, ctx, position=0):
+        """Vota para pular uma música da fila.
         Pula com votos de 1/3 dos membros do canal de voz em que Akira está.
         Não aceita votos de quem não está no canal de voz.
+        Sem argumentos, pula a música atual.
+
+        :param int position: Posição da música na fila
         """
 
         current_song = self.current_songs.get(ctx.guild.id)
@@ -66,29 +68,39 @@ class Deejay(Cog):
             return
 
         # only accept requests from members in the same voice channel
-        if (not ctx.author.voice) or (
-            not ctx.author.voice.channel == ctx.voice_client.channel
-        ):
+        # except if whoever wants to skip requested the song
+        if (
+            (not ctx.author.voice)
+            or (not ctx.author.voice.channel == ctx.voice_client.channel)
+        ) and (current_song['requester_id'] != ctx.author.id):
             meow = pt_to_miau(InfoMessages.NOT_MY_VOICE_CHANNEL)
             await send_with_reaction(ctx.send, meow)
             return
 
-        self.pula_votes[ctx.guild.id].add(ctx.author.id)
+        setlist = self.setlists[ctx.guild.id]
+        # position-1 because user will input as 1-indexed list
+        song_to_skip = setlist[position - 1]
+        song_to_skip['pula_votes'].add(ctx.author.id)
 
         n_members = len(ctx.voice_client.channel.members)
         required_votes = math.floor(1 / 3 * (n_members - 1))  # 1 is the bot
 
         if (
-            len(self.pula_votes[ctx.guild.id]) >= required_votes
+            len(song_to_skip['pula_votes']) >= required_votes
             or current_song['requester_id'] == ctx.author.id
         ):
-            ctx.voice_client.pause()
-            self.play_next(ctx.guild)
-            meow = pt_to_miau(InfoMessages.SKIPPED)
+            meow = None
+            if position > 0:
+                meow = f"Mierrrh {song_to_skip['title']}"
+                del setlist[position - 1]
+            else:
+                ctx.voice_client.pause()
+                self.play_next(ctx.guild)
+                meow = pt_to_miau(InfoMessages.SKIPPED)
             await send_with_reaction(ctx.send, meow)
 
         else:
-            n_to_skip = required_votes - len(self.pula_votes[ctx.guild.id])
+            n_to_skip = required_votes - len(song_to_skip['pula_votes'])
             # TODO: logic for any number (right now works for 1-9 only)
             meow = pt_to_miau(InfoMessages.NEED_MORE_VOTES, n_to_skip)
             await send_with_reaction(ctx.send, meow)
@@ -135,6 +147,7 @@ class Deejay(Cog):
 
     def setlists_append(self, author, guild_id, obj):
         obj['requester_id'] = author.id
+        obj['pula_votes'] = set()
         if self.setlists.get(guild_id):
             # the guild has a non-empty setlist
             self.setlists[guild_id].append(obj)
@@ -172,8 +185,6 @@ class Deejay(Cog):
 
         self.stopped_playing_timestamp = None
 
-        # create clean pula votes for this fresh song
-        self.pula_votes[guild.id] = set()
         self.current_songs[guild.id] = next_song_info
 
     def is_playing_guild(self, guild):
