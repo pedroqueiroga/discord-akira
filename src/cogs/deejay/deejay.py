@@ -293,8 +293,8 @@ class Deejay(Cog):
             .set_thumbnail(url=thumbnail)
             .set_footer(
                 text=footer,
-                icon_url='https://raw.githubusercontent.com/pqueiroga/'
-                'discord-terraplanista/master/icons/'
+                icon_url='https://raw.githubusercontent.com/pedroqueiroga/'
+                'discord-akira/master/icons/'
                 'playlist_add_check_white_18dp_36.png',
             )
         )
