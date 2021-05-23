@@ -141,6 +141,13 @@ class Deejay(Cog):
         if len(args) < 2:
             raise BadArgument('')
 
+        try:
+            if len(self.setlists[ctx.guild.id]) < 2:
+                raise Exception
+        except:
+            await send_with_reaction(ctx.send, 'não faz sentido...')
+            return
+
         arglist = list(args)
 
         rearrange = None
