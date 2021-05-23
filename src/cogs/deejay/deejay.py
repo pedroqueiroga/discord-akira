@@ -2,11 +2,12 @@ import asyncio
 import datetime
 import functools
 import math
+import re
 import time
-from collections import deque
+from typing import Any, List
 
 import discord
-from discord.ext.commands import Cog, command, guild_only
+from discord.ext.commands import BadArgument, Cog, command, guild_only
 from youtube_dl.utils import DownloadError
 
 from ...translation import (InfoMessages, number_to_miau, pt_to_miau,
@@ -126,6 +127,67 @@ class Deejay(Cog):
         self.setlists[ctx.guild.id] = []
         await ctx.send('foda-se')
 
+    @command()
+    @guild_only()
+    async def transmogrifar(self, ctx: discord.ext.commands.Context, *args):
+        """Altera o estado da fila."""
+        # Syntax 1: list of integers. Change the indexes of the queue
+        # example:  transmogrifar((1,3,2), [a,b,c,d,e,f]) -> [a,c,b,d,e,f]
+        # if there are more numbers than the len(list), error out.
+        # Syntax 2: original_position -> new position. Repositions a single
+        # element of the queue, pushing the other ones around
+        # Syntax 3: index1 <-> index2. Swaps both indexes.
+
+        if len(args) < 2:
+            raise BadArgument('')
+
+        arglist = list(args)
+
+        rearrange = None
+        try:
+            rearrange = list(map(lambda x: int(x) - 1, arglist))
+        except ValueError:
+            pass
+
+        if rearrange is not None:
+            reordered_setlist = self.reorder_list(
+                self.setlists[ctx.guild.id], rearrange
+            )
+            self.setlists[ctx.guild.id] = reordered_setlist
+            await send_with_reaction(ctx.send, 'ok')
+            return
+        if len(arglist) != 3:
+            await send_with_reaction(ctx.send, 'not ok')
+            return
+
+        arglist = list(map(lambda x: self.try_subtract_one(x), arglist))
+
+        if arglist[1] == '<-':
+            arglist[1] = '->'
+
+        if arglist[1] == '->':
+            reordered_setlist = self.reorder_single(
+                self.setlists[ctx.guild.id],
+                arglist[0],
+                arglist[2],
+            )
+            self.setlists[ctx.guild.id] = reordered_setlist
+            await send_with_reaction(ctx.send, 'ok')
+            return
+
+        if arglist[1] == '<->':
+            reordered_setlist = self.reorder_swap(
+                self.setlists[ctx.guild.id],
+                arglist[0],
+                arglist[2],
+            )
+            self.setlists[ctx.guild.id] = reordered_setlist
+            await send_with_reaction(ctx.send, 'ok')
+            return
+
+        await send_with_reaction(ctx.send, 'not ok')
+        return
+
     async def request(self, ctx: discord.ext.commands.Context, song):
         # breakpoint()
         call_play = False
@@ -180,7 +242,7 @@ class Deejay(Cog):
             self.setlists[guild_id].append(obj)
         else:
             # the setlist is missing, or empty.
-            self.setlists[guild_id] = deque([obj])
+            self.setlists[guild_id] = [obj]
 
     def play_next(self, guild):
         voice_client = guild.voice_client
@@ -199,7 +261,7 @@ class Deejay(Cog):
             return
 
         # get an AudioSource from next song in setlist
-        next_song_info = self.setlists[guild.id].popleft()
+        next_song_info = self.setlists[guild.id].pop(0)
         audio_source = discord.PCMVolumeTransformer(
             discord.FFmpegPCMAudio(
                 next_song_info['source_url'],
@@ -483,3 +545,54 @@ class Deejay(Cog):
 
     def should_start_playing(self, voice_client: discord.VoiceClient):
         return not voice_client.is_playing()
+
+    def get_list_range(self, l: List[int]):
+        """Takes a list and returns the range it comprehends.
+        If some numbers are skipped, errors out"""
+
+        sorted_list = sorted(l)
+
+        for (i, j) in zip(sorted_list, sorted_list[1:]):
+            if i != j - 1:
+                raise Exception('epa')
+
+        return {'start': sorted_list[0], 'end': sorted_list[-1]}
+
+    def reorder_list(self, ll: List[Any], new_order: List[int]):
+        """Reorders a list according to a new order"""
+        l = ll.copy()
+        ordering_range = self.get_list_range(new_order)
+
+        l[ordering_range['start'] : ordering_range['end'] + 1] = [
+            l[i] for i in new_order
+        ]
+
+        return l
+
+    def reorder_single(
+        self, ll: List[Any], current_index: int, new_index: int
+    ):
+        """Repositions single element, pushing around the other elements"""
+        l = ll.copy()
+
+        element = l[current_index]
+
+        del l[current_index]
+
+        l.insert(new_index, element)
+
+        return l
+
+    def reorder_swap(self, ll: List[Any], index1: int, index2: int):
+        """Swaps two elements"""
+        l = ll.copy()
+
+        l[index1], l[index2] = l[index2], l[index1]
+
+        return l
+
+    def try_subtract_one(self, value):
+        try:
+            return int(value) - 1
+        except (ValueError, TypeError):
+            return value
