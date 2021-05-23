@@ -4,6 +4,7 @@ import functools
 import math
 import re
 import time
+from random import shuffle
 from typing import Any, List
 
 import discord
@@ -138,9 +139,6 @@ class Deejay(Cog):
         # element of the queue, pushing the other ones around
         # Syntax 3: index1 <-> index2. Swaps both indexes.
 
-        if len(args) < 2:
-            raise BadArgument(None)
-
         try:
             if len(self.setlists[ctx.guild.id]) < 2:
                 raise Exception
@@ -148,6 +146,14 @@ class Deejay(Cog):
             meow = pt_to_miau(InfoMessages.NO_TRANSMOGRIFY)
             await send_with_reaction(ctx.send, meow)
             return
+
+        if len(args) == 0:
+            shuffle(self.setlists[ctx.guild.id])
+            await ctx.invoke(self.bot.get_command('fila'))
+            return
+
+        if len(args) < 2:
+            raise BadArgument(None)
 
         arglist = list(args)
 
