@@ -139,13 +139,14 @@ class Deejay(Cog):
         # Syntax 3: index1 <-> index2. Swaps both indexes.
 
         if len(args) < 2:
-            raise BadArgument('')
+            raise BadArgument(None)
 
         try:
             if len(self.setlists[ctx.guild.id]) < 2:
                 raise Exception
         except:
-            await send_with_reaction(ctx.send, 'não faz sentido...')
+            meow = pt_to_miau(InfoMessages.NO_TRANSMOGRIFY)
+            await send_with_reaction(ctx.send, meow)
             return
 
         arglist = list(args)
@@ -153,24 +154,41 @@ class Deejay(Cog):
         rearrange = None
         try:
             rearrange = list(map(lambda x: int(x) - 1, arglist))
+            self.raise_if_invalid_range(
+                max(rearrange),
+                min(rearrange),
+                len(self.setlists[ctx.guild.id]),
+            )
         except ValueError:
             pass
+        except:
+            raise BadArgument(None)
 
         if rearrange is not None:
-            reordered_setlist = self.reorder_list(
-                self.setlists[ctx.guild.id], rearrange
-            )
-            self.setlists[ctx.guild.id] = reordered_setlist
-            await send_with_reaction(ctx.send, 'ok')
-            return
+            try:
+                reordered_setlist = self.reorder_list(
+                    self.setlists[ctx.guild.id], rearrange
+                )
+                self.setlists[ctx.guild.id] = reordered_setlist
+                await ctx.invoke(self.bot.get_command('fila'))
+                return
+            except:
+                raise BadArgument(None)
+
         if len(arglist) != 3:
-            await send_with_reaction(ctx.send, 'not ok')
-            return
+            raise BadArgument(None)
 
         arglist = list(map(lambda x: self.try_subtract_one(x), arglist))
+        try:
+            self.raise_if_invalid_range(
+                arglist[0], arglist[2], len(self.setlists[ctx.guild.id])
+            )
+        except:
+            raise BadArgument(None)
 
         if arglist[1] == '<-':
             arglist[1] = '->'
+            arglist[0], arglist[2] = arglist[2], arglist[0]
 
         if arglist[1] == '->':
             reordered_setlist = self.reorder_single(
@@ -179,7 +197,7 @@ class Deejay(Cog):
                 arglist[2],
             )
             self.setlists[ctx.guild.id] = reordered_setlist
-            await send_with_reaction(ctx.send, 'ok')
+            await ctx.invoke(self.bot.get_command('fila'))
             return
 
         if arglist[1] == '<->':
@@ -189,14 +207,13 @@ class Deejay(Cog):
                 arglist[2],
             )
             self.setlists[ctx.guild.id] = reordered_setlist
-            await send_with_reaction(ctx.send, 'ok')
+            await ctx.invoke(self.bot.get_command('fila'))
             return
 
-        await send_with_reaction(ctx.send, 'not ok')
+        raise BadArgument(None)
         return
 
     async def request(self, ctx: discord.ext.commands.Context, song):
-        # breakpoint()
         call_play = False
         voice_client = ctx.guild.voice_client
         if not voice_client:
@@ -603,3 +620,11 @@ class Deejay(Cog):
             return int(value) - 1
         except (ValueError, TypeError):
             return value
+
+    def raise_if_invalid_position(self, index, length):
+        if index > length or index < 0:
+            raise Exception
+
+    def raise_if_invalid_range(self, index1, index2, length):
+        self.raise_if_invalid_position(index1, length)
+        self.raise_if_invalid_position(index2, length)
