@@ -22,6 +22,7 @@ class Deejay(Cog):
         self.current_songs = {}
         self.youtuber = Youtuber()
         self.stopped_playing_timestamp = None
+        self.loudness = {}
 
     @command()
     @guild_only()
@@ -198,6 +199,13 @@ class Deejay(Cog):
                 '-reconnect_delay_max 5',
             )
         )
+
+        try:
+            self.loudness[guild.id]
+        except:
+            self.loudness[guild.id] = 1
+
+        audio_source.volume = self.loudness[guild.id]
 
         try:
             voice_client.play(
@@ -408,7 +416,8 @@ class Deejay(Cog):
             return await send_with_reaction(ctx.send, miau)
 
         # new volume ok, finally commit the change
-        audio_source.volume = new_volume
+        self.loudness[ctx.guild.id] = new_volume
+        audio_source.volume = self.loudness[ctx.guild.id]
 
         if diff_volume > 0:
             miau = pt_to_miau(InfoMessages.INCREASED_VOLUME, abs(diff_volume))
