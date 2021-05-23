@@ -39,6 +39,7 @@ class InfoMessages(Enum):
     :attribute str VOLUME_TOO_LOUD: Requested volume is higher than ceil.
     :attribute str VOLUME_TOO_LOW: Requested volume is lower than floor.
     :attribute str COMMAND_MISUSE: Command was used incorrectly.
+    :attribute str ZERO: Represents zero, for type safety.
     :attribute str NEED_MORE_VOTES: More votes are needed to skip a song.
     :attribute str INVALID_QUEUE_POSITION: Queue position specified is not available.
     :attribute str INVALID_URL: Requested URL is a bad URL, could be a site other than youtube.
@@ -59,13 +60,14 @@ class InfoMessages(Enum):
     VOLUME_TOO_LOUD = 'Não posso aumentar o volume tanto assim.'
     VOLUME_TOO_LOW = 'Não posso diminuir o volume para abaixo de zero.'
     COMMAND_MISUSE = 'Não consegui te entender. (tente $help <comando>)'
+    ZERO = '0'
     NEED_MORE_VOTES = 'Preciso de mais votos para pular:'
     INVALID_QUEUE_POSITION = 'Posição na fila inválida...'
     INVALID_URL = 'URL INVÁLIDA!!'
     NO_VIDEO_FOUND = 'Nenhum vídeo encontrado.'
 
 
-_translation_book = bidict(
+_translation_book: bidict[str, InfoMessages] = bidict(
     {
         'miaau.': InfoMessages.LATER,
         'MIAAAU!!!': InfoMessages.NO_VOICE_CHANNEL,
@@ -81,7 +83,7 @@ _translation_book = bidict(
         'Mrrau...': InfoMessages.DECREASED_VOLUME,
         'Mrrau.': InfoMessages.NO_VOLUME_CHANGE,
         '????': InfoMessages.COMMAND_MISUSE,
-        'Meow.': 0,
+        'Meow.': InfoMessages.ZERO,
         'Miauau.': InfoMessages.NEED_MORE_VOTES,
         'mierr?': InfoMessages.INVALID_QUEUE_POSITION,
         'AUAU!!': InfoMessages.INVALID_URL,
@@ -121,11 +123,11 @@ def miau_to_pt(miau: str):
     return translation
 
 
-def pt_to_miau(phrase: str, n=None):
+def pt_to_miau(phrase: InfoMessages, n=None):
     """Translates a phrase [and number] into a miau.
 
     :param phrase: The phrase to be translated.
-    :type phrase: int or InfoMessage instance.
+    :type phrase: InfoMessages instance.
     :param int n: optional. a number to be translated into miau
     :returns: a portuguese phrase written in miau.
     :rtype: str
@@ -153,7 +155,7 @@ def number_to_miau(n: int):
     :rtype: str
     """
     if n == 0:
-        return _translation_book.inverse[0]
+        return _translation_book.inverse[InfoMessages.ZERO]
     roman = toRoman(n)
     return f'M{roman}AU.'
 
@@ -166,7 +168,7 @@ def miau_to_number(miau: str):
     :rtype: int
     """
     # remove M and AU.
-    if miau == _translation_book.inverse[0]:
+    if miau == _translation_book.inverse[InfoMessages.ZERO]:
         return 0
     roman = miau[1:-3]
     n = fromRoman(roman)

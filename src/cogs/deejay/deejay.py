@@ -25,7 +25,7 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def toca(self, ctx, *, args):
+    async def toca(self, ctx: discord.ext.commands.Context, *, args):
         """Toca música.
         Se não estiver conectada a um canal de voz, entra no canal de voz do
         invocador. Continua tocando no canal de voz em que estiver.
@@ -38,7 +38,7 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def fila(self, ctx):
+    async def fila(self, ctx: discord.ext.commands.Context):
         """Mostra a setlist atual."""
 
         current_song = self.current_songs.get(ctx.guild.id)
@@ -51,7 +51,7 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def pula(self, ctx, position=0):
+    async def pula(self, ctx: discord.ext.commands.Context, position=0):
         """Vota para pular uma música da fila.
         Pula com votos de 1/3 dos membros do canal de voz em que Akira está.
         Não aceita votos de quem não está no canal de voz.
@@ -117,13 +117,13 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def limpa(self, ctx):
+    async def limpa(self, ctx: discord.ext.commands.Context):
         """Limpa a fila.
         Este comando limpa a fila e pronto."""
         self.setlists[ctx.guild.id] = []
         await ctx.send('foda-se')
 
-    async def request(self, ctx, song):
+    async def request(self, ctx: discord.ext.commands.Context, song):
         call_play = False
         voice_client = ctx.guild.voice_client
         if not voice_client:
