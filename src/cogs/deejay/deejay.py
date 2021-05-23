@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import functools
 import math
 import time
@@ -6,6 +7,7 @@ from collections import deque
 
 import discord
 from discord.ext.commands import Cog, command, guild_only
+from youtube_dl.utils import DownloadError
 
 from ...translation import (InfoMessages, number_to_miau, pt_to_miau,
                             send_with_reaction)
@@ -125,6 +127,7 @@ class Deejay(Cog):
         await ctx.send('foda-se')
 
     async def request(self, ctx: discord.ext.commands.Context, song):
+        # breakpoint()
         call_play = False
         voice_client = ctx.guild.voice_client
         if not voice_client:
@@ -153,6 +156,11 @@ class Deejay(Cog):
             return
         except IndexError:
             meow = pt_to_miau(InfoMessages.NO_VIDEO_FOUND)
+            await send_with_reaction(ctx.send, meow)
+            return
+        except DownloadError as err:
+            print(datetime.datetime.today().timestamp(), err)
+            meow = pt_to_miau(InfoMessages.VIDEO_UNAVAILABLE)
             await send_with_reaction(ctx.send, meow)
             return
 

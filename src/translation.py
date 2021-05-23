@@ -44,6 +44,7 @@ class InfoMessages(Enum):
     :attribute str INVALID_QUEUE_POSITION: Queue position specified is not available.
     :attribute str INVALID_URL: Requested URL is a bad URL, could be a site other than youtube.
     :attribute str NO_VIDEO_FOUND: Video search returned no results.
+    :attribute str VIDEO_UNAVAILABLE: Video download failed for some reason or another.
     """
 
     LATER = 'Talvez mais tarde.'
@@ -65,6 +66,7 @@ class InfoMessages(Enum):
     INVALID_QUEUE_POSITION = 'Posição na fila inválida...'
     INVALID_URL = 'URL INVÁLIDA!!'
     NO_VIDEO_FOUND = 'Nenhum vídeo encontrado.'
+    VIDEO_UNAVAILABLE = 'Vídeo encontrado está indisponível. Tente modificar a busca, ou usar uma URL.'
 
 
 _translation_book: bidict[str, InfoMessages] = bidict(
@@ -88,6 +90,7 @@ _translation_book: bidict[str, InfoMessages] = bidict(
         'mierr?': InfoMessages.INVALID_QUEUE_POSITION,
         'AUAU!!': InfoMessages.INVALID_URL,
         'mmmm...': InfoMessages.NO_VIDEO_FOUND,
+        'miauauaua!': InfoMessages.VIDEO_UNAVAILABLE,
     }
 )
 
