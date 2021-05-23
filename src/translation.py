@@ -29,8 +29,20 @@ class InfoMessages(Enum):
     :attribute str NOT_MY_VOICE_CHANNEL: The user needs to be in Akira's voice
     channel but isn't.
     :attribute str SKIPPED: Akira skipped a song.
+    :attribute str SKIPPED_SPECIFIC: Akira skipped a song that is not current.
     :attribute str EMPTY_QUEUE: The setlist is empty.
     :attribute str NOT_PLAYING: Akira's not playing anything.
+    :attribute str INVALID_VOLUME: Requested volume is not a volume.
+    :attribute str INCREASED_VOLUME: Volume successfully increased.
+    :attribute str DECREASED_VOLUME: Volume successfully decreased.
+    :attribute str NO_VOLUME_CHANGE: Requested volume was current volume.
+    :attribute str VOLUME_TOO_LOUD: Requested volume is higher than ceil.
+    :attribute str VOLUME_TOO_LOW: Requested volume is lower than floor.
+    :attribute str COMMAND_MISUSE: Command was used incorrectly.
+    :attribute str NEED_MORE_VOTES: More votes are needed to skip a song.
+    :attribute str INVALID_QUEUE_POSITION: Queue position specified is not available.
+    :attribute str INVALID_URL: Requested URL is a bad URL, could be a site other than youtube.
+    :attribute str NO_VIDEO_FOUND: Video search returned no results.
     """
 
     LATER = 'Talvez mais tarde.'
