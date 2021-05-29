@@ -153,7 +153,7 @@ class Deejay(Cog):
             return
 
         if len(args) == 0:
-            shuffle(setlist)
+            self.shuffle(setlist)
             await ctx.invoke(self.bot.get_command('fila'))
             return
 
@@ -629,3 +629,22 @@ class Deejay(Cog):
     ) -> None:
         self.raise_if_invalid_position(index1, length)
         self.raise_if_invalid_position(index2, length)
+
+    def shuffle(self, l: List[Any]) -> None:
+        """Shuffles a list in place until it is really shuffled!
+        Time complexity should be about 1/e"""
+
+        original_list = l.copy()
+
+        really_shuffled = False
+
+        while not really_shuffled:
+            shuffle(l)
+            repeated_positions = 0
+            for a, b in zip(l, original_list):
+                if a == b:
+                    repeated_positions += 1
+                if repeated_positions > len(original_list) / 2:
+                    break
+            else:
+                really_shuffled = True
