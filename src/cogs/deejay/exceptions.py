@@ -1,0 +1,2 @@
+class RequesterIdAlreadySet(Exception):
+    pass
