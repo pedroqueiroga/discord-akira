@@ -15,6 +15,7 @@ from ...translation import (InfoMessages, number_to_miau, pt_to_miau,
                             send_with_reaction)
 from ...utils import is_int, seconds_human_friendly
 from .guild import Guild
+from .guilds import Guilds
 from .youtuber import Youtuber
 
 
@@ -23,16 +24,16 @@ class Deejay(Cog):
 
     bot: Bot
     youtuber: Youtuber = Youtuber()
-    guilds: Dict[int, Guild] = {}
+    guilds: Guilds = Guilds()
 
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    def on_ready(self):
-        """This command should be called inside bot.on_ready"""
-        print('teste')
-        for guild in self.bot.guilds:  # type: discord.Guild
-            self.guilds[guild.id] = Guild()
+    def register_guilds(self):
+        """This command register guilds that Akira is connected to"""
+        for connected_guild in self.bot.guilds:  # type: discord.Guild
+            if connected_guild.id not in self.guilds:
+                self.guilds[connected_guild.id] = Guild()
 
     @command()
     @guild_only()
@@ -52,12 +53,14 @@ class Deejay(Cog):
     async def fila(self, ctx: discord.ext.commands.Context):
         """Mostra a setlist atual."""
 
-        current_song = self.current_songs.get(ctx.guild.id)
+        guild = self.guilds[ctx.guild.id]
+        current_song = guild.current_song
+
         if not current_song:
             meow = pt_to_miau(InfoMessages.EMPTY_QUEUE)
             await send_with_reaction(ctx.send, meow)
         else:
-            fila_embed = self.get_fila_embed(ctx.guild.id)
+            fila_embed = self.get_fila_embed(guild)
             await ctx.send(embed=fila_embed)
 
     @command()
