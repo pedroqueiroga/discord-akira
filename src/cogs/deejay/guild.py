@@ -4,6 +4,9 @@ from .song import Song
 
 
 class Guild:
+    """Guild class that Deejay Akira uses to keep track of what is
+    going on at each guild she is invited to play on."""
+
     _setlist: List[Song] = []
     _current_song: Song
     _stopped_playing_timestamp: float
