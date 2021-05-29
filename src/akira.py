@@ -18,7 +18,6 @@ class Akira(Bot):
 
     async def on_ready(self):
         self.on_ready_time = datetime.datetime.now(datetime.timezone.utc)
-        self.cogs['Deejay'].register_guilds()
         print(f'{self.user} has connected to Discord!')
 
     async def on_message(self, message):

@@ -29,12 +29,6 @@ class Deejay(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    def register_guilds(self):
-        """This command register guilds that Akira is connected to"""
-        for connected_guild in self.bot.guilds:  # type: discord.Guild
-            if connected_guild.id not in self.guilds:
-                self.guilds[connected_guild.id] = Guild()
-
     @command()
     @guild_only()
     async def toca(self, ctx: discord.ext.commands.Context, *, args):
