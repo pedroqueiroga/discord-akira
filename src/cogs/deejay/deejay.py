@@ -67,15 +67,15 @@ class Deejay(Cog):
 
         :param int position: Posição da música na fila
         """
-
-        current_song = self.current_songs.get(ctx.guild.id)
+        guild = self.guilds[ctx.guild.id]
+        current_song = guild.current_song
         # makes sense only if there is a song playing
         if not current_song:
             meow = pt_to_miau(InfoMessages.NOT_PLAYING)
             await send_with_reaction(ctx.send, meow)
             return
 
-        setlist = self.setlists[ctx.guild.id]
+        setlist = guild.setlist
 
         if position < 0 or position > len(setlist):
             meow = pt_to_miau(InfoMessages.INVALID_QUEUE_POSITION)
@@ -87,7 +87,7 @@ class Deejay(Cog):
         if (
             (not ctx.author.voice)
             or (not ctx.author.voice.channel == ctx.voice_client.channel)
-        ) and (current_song['requester_id'] != ctx.author.id):
+        ) and (current_song.requester_id != ctx.author.id):
             meow = pt_to_miau(InfoMessages.NOT_MY_VOICE_CHANNEL)
             await send_with_reaction(ctx.send, meow)
             return
@@ -98,14 +98,14 @@ class Deejay(Cog):
         else:
             # position-1 because user will input as 1-indexed list
             song_to_skip = setlist[position - 1]
-            song_to_skip['pula_votes'].add(ctx.author.id)
+            song_to_skip.pula_votes.add(ctx.author.id)
 
         n_members = len(ctx.voice_client.channel.members)
         required_votes = math.floor(1 / 3 * (n_members - 1))  # 1 is the bot
 
         if (
-            len(song_to_skip['pula_votes']) >= required_votes
-            or current_song['requester_id'] == ctx.author.id
+            len(song_to_skip.pula_votes) >= required_votes
+            or current_song.requester_id == ctx.author.id
         ):
             meow = None
             if position > 0:
@@ -118,8 +118,8 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
 
         else:
-            n_to_skip = required_votes - len(song_to_skip['pula_votes'])
-            # TODO: logic for any number (right now works for 1-9 only)
+            n_to_skip = required_votes - len(song_to_skip.pula_votes)
+
             meow = pt_to_miau(InfoMessages.NEED_MORE_VOTES, n_to_skip)
             await send_with_reaction(ctx.send, meow)
 
