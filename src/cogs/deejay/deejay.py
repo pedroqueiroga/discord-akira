@@ -266,24 +266,27 @@ class Deejay(Cog):
         if self.should_start_playing(voice_client):
             self.play_next(ctx.guild)
 
-    def play_next(self, guild):
-        voice_client = guild.voice_client
+    def play_next(self, dd_guild: discord.Guild) -> None:
+        voice_client = dd_guild.voice_client
+        guild = self.guilds[dd_guild.id]
+        setlist = guild.setlist
+
         if not voice_client:
             print('weirdly, i have no voice_client but I should have')
-            self.setlists[guild.id].clear()
-            self.current_songs[guild.id] = None
+            setlist.clear()
+            guild.current_song = None
             return
-        if len(self.setlists[guild.id]) == 0:
-            self.stopped_playing_timestamp = time.monotonic()
+        if len(setlist) == 0:
+            guild.stopped_playing_timestamp = time.monotonic()
             # if the queue is empty, disconnect after 10 minutes
             asyncio.run_coroutine_threadsafe(
                 self._trigger_disconnect(voice_client, guild), self.bot.loop
             )
-            self.current_songs[guild.id] = None
+            guild.current_song = None
             return
 
         # get an AudioSource from next song in setlist
-        next_song_info = self.setlists[guild.id].pop(0)
+        next_song_info = setlist.pop(0)
         audio_source = discord.PCMVolumeTransformer(
             discord.FFmpegPCMAudio(
                 next_song_info['source_url'],
@@ -292,25 +295,20 @@ class Deejay(Cog):
             )
         )
 
-        try:
-            self.loudness[guild.id]
-        except:
-            self.loudness[guild.id] = 1
-
-        audio_source.volume = self.loudness[guild.id]
+        audio_source.volume = guild.loudness
 
         try:
             voice_client.play(
-                audio_source, after=lambda _: self.play_next(guild)
+                audio_source, after=lambda _: self.play_next(dd_guild)
             )
 
-            self.stopped_playing_timestamp = None
+            guild.stopped_playing_timestamp = None
 
-            self.current_songs[guild.id] = next_song_info
+            guild.current_song = next_song_info
         except discord.ClientException:
             if voice_client.is_playing():
                 print(
-                    f'tried to play {next_song_info}, but i am already playing {current_songs[guild.id]}'
+                    f'tried to play {next_song_info}, but i am already playing {guild.current_song}'
                 )
 
     def is_playing_guild(self, guild):
