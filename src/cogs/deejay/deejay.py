@@ -375,16 +375,18 @@ class Deejay(Cog):
         )
         return titles
 
-    def get_toca_embed(self, author, video_info, n_titles=3):
-        title = video_info['title']
-        duration = seconds_human_friendly(video_info['duration'])
-        thumbnail = video_info['thumbnail']
-        webpage_url = video_info['webpage_url']
+    def get_toca_embed(
+        self, author: discord.abc.User, song: Song, n_titles=3
+    ) -> discord.Embed:
+        guild = author.guild
 
-        titles = self.get_setlist_titles(
-            author.guild.id, current=True, n=n_titles
-        )
-        total_songs = len(self.setlists[author.guild.id]) + 1  # + current song
+        title = song.title
+        duration = seconds_human_friendly(song.duration)
+        thumbnail = song.thumbnail
+        webpage_url = song.webpage_url
+
+        titles = self.get_setlist_titles(guild, current=True, n=n_titles)
+        total_songs = len(guild.setlist) + 1  # + current song
         footer = ', '.join(titles) + ('...' if total_songs > n_titles else '')
 
         embed = (
