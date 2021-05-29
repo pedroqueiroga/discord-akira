@@ -8,7 +8,8 @@ from random import shuffle
 from typing import Any, Dict, List
 
 import discord
-from discord.ext.commands import BadArgument, Bot, Cog, command, guild_only
+from discord.ext.commands import (BadArgument, Bot, Cog, Context, command,
+                                  guild_only)
 from youtube_dl.utils import DownloadError
 
 from ...translation import (InfoMessages, number_to_miau, pt_to_miau,
@@ -31,7 +32,7 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def toca(self, ctx: discord.ext.commands.Context, *, args):
+    async def toca(self, ctx: Context, *, args) -> None:
         """Toca música.
         Se não estiver conectada a um canal de voz, entra no canal de voz do
         invocador. Continua tocando no canal de voz em que estiver.
@@ -44,7 +45,7 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def fila(self, ctx: discord.ext.commands.Context):
+    async def fila(self, ctx: Context) -> None:
         """Mostra a setlist atual."""
 
         guild = self.guilds[ctx.guild.id]
@@ -59,7 +60,7 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def pula(self, ctx: discord.ext.commands.Context, position=0):
+    async def pula(self, ctx: Context, position=0) -> None:
         """Vota para pular uma música da fila.
         Pula com votos de 1/3 dos membros do canal de voz em que Akira está.
         Não aceita votos de quem não está no canal de voz.
@@ -125,7 +126,7 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def limpa(self, ctx: discord.ext.commands.Context):
+    async def limpa(self, ctx: Context) -> None:
         """Limpa a fila.
         Este comando limpa a fila e pronto."""
         self.guilds[ctx.guild.id].setlist.clear()
@@ -134,7 +135,7 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def transmogrifar(self, ctx: discord.ext.commands.Context, *args):
+    async def transmogrifar(self, ctx: Context, *args) -> None:
         """Altera o estado da fila."""
         # Syntax 1: list of integers. Change the indexes of the queue
         # example:  transmogrifar((1,3,2), [a,b,c,d,e,f]) -> [a,c,b,d,e,f]
@@ -217,7 +218,7 @@ class Deejay(Cog):
         raise BadArgument(None)
         return
 
-    async def request(self, ctx: discord.ext.commands.Context, song):
+    async def request(self, ctx: Context, song) -> None:
         call_play = False
         voice_client = ctx.guild.voice_client
         if not voice_client:
@@ -262,7 +263,9 @@ class Deejay(Cog):
         if self.should_start_playing(voice_client):
             self.play_next(ctx.guild)
 
-    def setlists_append(self, author, guild_id, obj):
+    def setlists_append(
+        self, author: discord.abc.User, guild_id: int, obj
+    ) -> None:
         obj['requester_id'] = author.id
         obj['pula_votes'] = set()
         if self.setlists.get(guild_id):
