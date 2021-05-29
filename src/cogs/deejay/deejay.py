@@ -346,7 +346,9 @@ class Deejay(Cog):
                 break
         return titles
 
-    def get_setlist_titles_links_formatted(self, guild_id, current=False):
+    def get_setlist_titles_links_formatted(
+        self, guild: Guild, current=False
+    ) -> List[str]:
         """Gets the titles and links of the guild's setlist.
 
         Formats the links in markdown.
@@ -357,7 +359,7 @@ class Deejay(Cog):
         :rtype: [str]
 
         """
-        current_song = self.current_songs.get(guild_id)
+        current_song = guild.current_song
         if current_song and current:
             titles = [
                 f"[{current_song['title']}]({current_song['webpage_url']})"
@@ -367,8 +369,8 @@ class Deejay(Cog):
 
         titles.extend(
             [
-                f"{idx+1}. [{s['title']}]({s['webpage_url']})"
-                for idx, s in enumerate(self.setlists[guild_id])
+                f"{idx+1}. [{s.title}]({s.webpage_url})"
+                for idx, s in enumerate(guild.setlist)
             ]
         )
         return titles
