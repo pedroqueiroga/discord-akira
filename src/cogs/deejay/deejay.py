@@ -461,13 +461,16 @@ class Deejay(Cog):
         )
         return embed
 
-    def total_setlist_duration(self, guild_id):
-        current_song = self.current_songs.get(guild_id)
-        return functools.reduce(
-            lambda x, y: {'duration': x['duration'] + y['duration']},
-            self.setlists[guild_id],
-            current_song,
-        )['duration']
+    def total_setlist_duration(self, guild: Guild) -> int:
+        current_song = guild.current_song
+
+        if current_song is None:
+            raise Exception('current_song is None')
+
+        return (
+            sum(map(lambda x: x.duration, guild.setlist))
+            + current_song.duration
+        )
 
     @command()
     @guild_only()
