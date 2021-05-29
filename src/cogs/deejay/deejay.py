@@ -17,6 +17,7 @@ from ...translation import (InfoMessages, number_to_miau, pt_to_miau,
 from ...utils import is_int, seconds_human_friendly
 from .guild import Guild
 from .guilds import Guilds
+from .song import Song
 from .youtuber import Youtuber
 
 
@@ -218,7 +219,7 @@ class Deejay(Cog):
         raise BadArgument(None)
         return
 
-    async def request(self, ctx: Context, song) -> None:
+    async def request(self, ctx: Context, search_url: str) -> None:
         call_play = False
         voice_client = ctx.guild.voice_client
         if not voice_client:
@@ -240,7 +241,7 @@ class Deejay(Cog):
             return
 
         try:
-            videos = self.youtuber.get_video_info(song)
+            videos = self.youtuber.get_video_info(search_url)
         except AttributeError:
             meow = pt_to_miau(InfoMessages.INVALID_URL)
             await send_with_reaction(ctx.send, meow)
@@ -255,25 +256,15 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
             return
 
-        for video_info in videos:
-            self.setlists_append(ctx.author, ctx.guild.id, video_info)
+        for song in videos:
+            setlist = self.guilds[ctx.guild.id].setlist
+            song.requester_id = ctx.author.id
+            setlist.append(song)
         embed = self.get_toca_embed(ctx.author, videos[0])
         await ctx.send(embed=embed)
 
         if self.should_start_playing(voice_client):
             self.play_next(ctx.guild)
-
-    def setlists_append(
-        self, author: discord.abc.User, guild_id: int, obj
-    ) -> None:
-        obj['requester_id'] = author.id
-        obj['pula_votes'] = set()
-        if self.setlists.get(guild_id):
-            # the guild has a non-empty setlist
-            self.setlists[guild_id].append(obj)
-        else:
-            # the setlist is missing, or empty.
-            self.setlists[guild_id] = [obj]
 
     def play_next(self, guild):
         voice_client = guild.voice_client
