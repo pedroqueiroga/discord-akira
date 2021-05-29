@@ -128,7 +128,7 @@ class Deejay(Cog):
     async def limpa(self, ctx: discord.ext.commands.Context):
         """Limpa a fila.
         Este comando limpa a fila e pronto."""
-        self.setlists[ctx.guild.id] = []
+        self.guilds[ctx.guild.id].setlist.clear()
         await ctx.send('foda-se')
 
     @command()
