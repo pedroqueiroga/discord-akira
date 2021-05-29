@@ -5,7 +5,7 @@ import math
 import re
 import time
 from random import shuffle
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import discord
 from discord.ext.commands import (BadArgument, Bot, Cog, Context, command,
@@ -474,9 +474,7 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
-    async def volume(
-        self, ctx: discord.ext.commands.Context, requested_volume=None
-    ):
+    async def volume(self, ctx: Context, requested_volume=None) -> None:
         """Dita o volume da discotecagem de Akira.
 
         Aceita apenas um argumento, o volume, que deve ser de 0 a 11.
@@ -519,8 +517,9 @@ class Deejay(Cog):
             return await send_with_reaction(ctx.send, miau)
 
         # new volume ok, finally commit the change
-        self.loudness[ctx.guild.id] = new_volume
-        audio_source.volume = self.loudness[ctx.guild.id]
+        guild = self.guilds[ctx.guild.id]
+        guild.loudness = new_volume
+        audio_source.volume = guild.loudness
 
         if diff_volume > 0:
             miau = pt_to_miau(InfoMessages.INCREASED_VOLUME, abs(diff_volume))
@@ -532,7 +531,9 @@ class Deejay(Cog):
         # this method is quite long, it is mostly verifications
         return await send_with_reaction(ctx.send, miau)
 
-    def get_new_volume(self, current_volume, volume, diff=False):
+    def get_new_volume(
+        self, current_volume: float, volume: float, diff=False
+    ) -> Tuple[float, float]:
         whole_current_volume = self.from_decimal_volume(current_volume)
         if diff:
             new_volume = whole_current_volume + volume
@@ -546,35 +547,35 @@ class Deejay(Cog):
             diff_volume,
         )
 
-    def is_requested_volume_diff(self, requested_volume):
+    def is_requested_volume_diff(self, requested_volume: str) -> bool:
         return requested_volume.startswith('+') or requested_volume.startswith(
             '-'
         )
 
-    def from_decimal_volume(self, volume):
+    def from_decimal_volume(self, volume: float) -> int:
         whole_volume = round(volume * 10)
         if whole_volume < 20 and whole_volume > 11:
             raise Exception("Invalid Volume")
         return 11 if whole_volume == 20 else whole_volume
 
-    def to_decimal_volume(self, volume):
+    def to_decimal_volume(self, volume: float) -> float:
         return ((volume + 9) if volume > 10 else volume) / 10
 
-    async def _trigger_disconnect(self, voice_client, guild):
+    async def _trigger_disconnect(
+        self, voice_client: discord.VoiceClient, guild: Guild
+    ):
         ten_minutes = 600  # seconds
 
         await asyncio.sleep(ten_minutes)
 
-        if len(self.setlists[guild.id]) > 0 or (
-            self.stopped_playing_timestamp is None
-        ):
+        if len(guild.setlist) > 0 or (guild.stopped_playing_timestamp is None):
             return
 
-        time_since_stop = time.monotonic() - self.stopped_playing_timestamp
+        time_since_stop = time.monotonic() - guild.stopped_playing_timestamp
 
         if time_since_stop >= ten_minutes:
             await voice_client.disconnect()
-            self.stopped_playing_timestamp = None
+            guild.stopped_playing_timestamp = None
 
     def should_start_playing(self, voice_client: discord.VoiceClient):
         return not voice_client.is_playing()
