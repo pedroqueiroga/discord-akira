@@ -326,9 +326,9 @@ class Deejay(Cog):
 
     async def connect_to_user_voice_client(
         self, user: discord.abc.User
-    ) -> None:
+    ) -> discord.VoiceClient:
         if user.voice:
-            await user.voice.channel.connect()
+            return await user.voice.channel.connect()
 
     def get_setlist_titles(
         self, guild: Guild, current=False, n=None

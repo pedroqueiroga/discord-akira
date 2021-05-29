@@ -17,5 +17,4 @@ class Guilds(Dict[int, Guild]):
 
     def __missing__(self, key: int) -> Guild:
         self[key] = Guild()
-
-        raise KeyError('Chave está faltando', key)
+        return self[key]
