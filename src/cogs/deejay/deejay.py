@@ -129,7 +129,8 @@ class Deejay(Cog):
         """Limpa a fila.
         Este comando limpa a fila e pronto."""
         self.guilds[ctx.guild.id].setlist.clear()
-        await ctx.send('foda-se')
+        # TODO
+        await ctx.send('miau legal')
 
     @command()
     @guild_only()
@@ -142,16 +143,15 @@ class Deejay(Cog):
         # element of the queue, pushing the other ones around
         # Syntax 3: index1 <-> index2. Swaps both indexes.
 
-        try:
-            if len(self.setlists[ctx.guild.id]) < 2:
-                raise Exception
-        except:
+        setlist = self.guilds[ctx.guild.id].setlist
+
+        if len(setlist) < 2:
             meow = pt_to_miau(InfoMessages.NO_TRANSMOGRIFY)
             await send_with_reaction(ctx.send, meow)
             return
 
         if len(args) == 0:
-            shuffle(self.setlists[ctx.guild.id])
+            shuffle(setlist)
             await ctx.invoke(self.bot.get_command('fila'))
             return
 
@@ -166,7 +166,7 @@ class Deejay(Cog):
             self.raise_if_invalid_range(
                 max(rearrange),
                 min(rearrange),
-                len(self.setlists[ctx.guild.id]),
+                len(setlist),
             )
         except ValueError:
             pass
@@ -175,10 +175,7 @@ class Deejay(Cog):
 
         if rearrange is not None:
             try:
-                reordered_setlist = self.reorder_list(
-                    self.setlists[ctx.guild.id], rearrange
-                )
-                self.setlists[ctx.guild.id] = reordered_setlist
+                self.reorder_list(setlist, rearrange)
                 await ctx.invoke(self.bot.get_command('fila'))
                 return
             except:
@@ -200,22 +197,20 @@ class Deejay(Cog):
             arglist[0], arglist[2] = arglist[2], arglist[0]
 
         if arglist[1] == '->':
-            reordered_setlist = self.reorder_single(
-                self.setlists[ctx.guild.id],
+            self.reorder_single(
+                setlist,
                 arglist[0],
                 arglist[2],
             )
-            self.setlists[ctx.guild.id] = reordered_setlist
             await ctx.invoke(self.bot.get_command('fila'))
             return
 
         if arglist[1] == '<->':
-            reordered_setlist = self.reorder_swap(
-                self.setlists[ctx.guild.id],
+            self.reorder_swap(
+                setlist,
                 arglist[0],
                 arglist[2],
             )
-            self.setlists[ctx.guild.id] = reordered_setlist
             await ctx.invoke(self.bot.get_command('fila'))
             return
 
@@ -591,22 +586,17 @@ class Deejay(Cog):
 
         return {'start': sorted_list[0], 'end': sorted_list[-1]}
 
-    def reorder_list(self, ll: List[Any], new_order: List[int]):
-        """Reorders a list according to a new order"""
-        l = ll.copy()
+    def reorder_list(self, l: List[Any], new_order: List[int]):
+        """Reorders a list in place according to a new order"""
         ordering_range = self.get_list_range(new_order)
 
         l[ordering_range['start'] : ordering_range['end'] + 1] = [
             l[i] for i in new_order
         ]
 
-        return l
-
-    def reorder_single(
-        self, ll: List[Any], current_index: int, new_index: int
-    ):
-        """Repositions single element, pushing around the other elements"""
-        l = ll.copy()
+    def reorder_single(self, l: List[Any], current_index: int, new_index: int):
+        """Repositions in place a single element in a list, pushing around the
+        other elements"""
 
         element = l[current_index]
 
@@ -614,15 +604,9 @@ class Deejay(Cog):
 
         l.insert(new_index, element)
 
-        return l
-
-    def reorder_swap(self, ll: List[Any], index1: int, index2: int):
-        """Swaps two elements"""
-        l = ll.copy()
-
+    def reorder_swap(self, l: List[Any], index1: int, index2: int):
+        """Swaps two elements of a list, in place"""
         l[index1], l[index2] = l[index2], l[index1]
-
-        return l
 
     def try_subtract_one(self, value):
         try:
