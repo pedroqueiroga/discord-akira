@@ -94,7 +94,7 @@ class Deejay(Cog):
             await send_with_reaction(ctx.send, meow)
             return
 
-        song_to_skip = None
+        song_to_skip: Song
         if position == 0:
             song_to_skip = current_song
         else:
@@ -289,7 +289,7 @@ class Deejay(Cog):
         next_song_info = setlist.pop(0)
         audio_source = discord.PCMVolumeTransformer(
             discord.FFmpegPCMAudio(
-                next_song_info['source_url'],
+                next_song_info.source_url,
                 before_options='-reconnect 1 -reconnect_streamed 1 '
                 '-reconnect_delay_max 5',
             )
@@ -335,7 +335,7 @@ class Deejay(Cog):
     ) -> List[str]:
         current_song = guild.current_song
         if current_song and current:
-            titles = [current_song['title']]
+            titles = [current_song.title]
         else:
             titles = []
 
@@ -361,9 +361,7 @@ class Deejay(Cog):
         """
         current_song = guild.current_song
         if current_song and current:
-            titles = [
-                f"[{current_song['title']}]({current_song['webpage_url']})"
-            ]
+            titles = [f"[{current_song.title}]({current_song.webpage_url})"]
         else:
             titles = []
 
