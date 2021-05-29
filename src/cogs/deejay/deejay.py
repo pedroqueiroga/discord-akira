@@ -5,7 +5,7 @@ import math
 import re
 import time
 from random import shuffle
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import discord
 from discord.ext.commands import (BadArgument, Bot, Cog, Context, command,
@@ -577,10 +577,10 @@ class Deejay(Cog):
             await voice_client.disconnect()
             guild.stopped_playing_timestamp = None
 
-    def should_start_playing(self, voice_client: discord.VoiceClient):
+    def should_start_playing(self, voice_client: discord.VoiceClient) -> bool:
         return not voice_client.is_playing()
 
-    def get_list_range(self, l: List[int]):
+    def get_list_range(self, l: List[int]) -> Dict[str, int]:
         """Takes a list and returns the range it comprehends.
         If some numbers are skipped, errors out"""
 
@@ -592,7 +592,7 @@ class Deejay(Cog):
 
         return {'start': sorted_list[0], 'end': sorted_list[-1]}
 
-    def reorder_list(self, l: List[Any], new_order: List[int]):
+    def reorder_list(self, l: List[Any], new_order: List[int]) -> None:
         """Reorders a list in place according to a new order"""
         ordering_range = self.get_list_range(new_order)
 
@@ -600,7 +600,9 @@ class Deejay(Cog):
             l[i] for i in new_order
         ]
 
-    def reorder_single(self, l: List[Any], current_index: int, new_index: int):
+    def reorder_single(
+        self, l: List[Any], current_index: int, new_index: int
+    ) -> None:
         """Repositions in place a single element in a list, pushing around the
         other elements"""
 
@@ -610,20 +612,22 @@ class Deejay(Cog):
 
         l.insert(new_index, element)
 
-    def reorder_swap(self, l: List[Any], index1: int, index2: int):
+    def reorder_swap(self, l: List[Any], index1: int, index2: int) -> None:
         """Swaps two elements of a list, in place"""
         l[index1], l[index2] = l[index2], l[index1]
 
-    def try_subtract_one(self, value):
+    def try_subtract_one(self, value: str) -> Union[int, str]:
         try:
             return int(value) - 1
         except (ValueError, TypeError):
             return value
 
-    def raise_if_invalid_position(self, index, length):
+    def raise_if_invalid_position(self, index: int, length: int) -> None:
         if index > length or index < 0:
             raise Exception
 
-    def raise_if_invalid_range(self, index1, index2, length):
+    def raise_if_invalid_range(
+        self, index1: int, index2: int, length: int
+    ) -> None:
         self.raise_if_invalid_position(index1, length)
         self.raise_if_invalid_position(index2, length)
