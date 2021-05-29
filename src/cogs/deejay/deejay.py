@@ -188,9 +188,7 @@ class Deejay(Cog):
 
         arglist = list(map(lambda x: self.try_subtract_one(x), arglist))
         try:
-            self.raise_if_invalid_range(
-                arglist[0], arglist[2], len(self.setlists[ctx.guild.id])
-            )
+            self.raise_if_invalid_range(arglist[0], arglist[2], len(setlist))
         except:
             raise BadArgument(None)
 
