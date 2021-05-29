@@ -376,7 +376,7 @@ class Deejay(Cog):
     def get_toca_embed(
         self, author: discord.abc.User, song: Song, n_titles=3
     ) -> discord.Embed:
-        guild = author.guild
+        guild = self.guilds[author.guild]
 
         title = song.title
         duration = seconds_human_friendly(song.duration)

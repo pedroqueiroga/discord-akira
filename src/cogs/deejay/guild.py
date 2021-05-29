@@ -8,8 +8,8 @@ class Guild:
     going on at each guild she is invited to play on."""
 
     _setlist: List[Song] = []
-    _current_song: Optional[Song]
-    _stopped_playing_timestamp: Optional[float]
+    _current_song: Optional[Song] = None
+    _stopped_playing_timestamp: Optional[float] = None
     _loudness: float
 
     def __init__(self, loudness: float = 1):
