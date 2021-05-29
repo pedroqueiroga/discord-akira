@@ -16,7 +16,7 @@ class Guild:
         self._loudness = loudness
 
     @property
-    def setlist(self):
+    def setlist(self) -> List[Song]:
         return self._setlist
 
     @property

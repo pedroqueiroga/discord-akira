@@ -311,7 +311,7 @@ class Deejay(Cog):
                     f'tried to play {next_song_info}, but i am already playing {guild.current_song}'
                 )
 
-    def is_playing_guild(self, guild):
+    def is_playing_guild(self, guild: discord.Guild) -> bool:
         """Decides if the Akira is playing an Audio Source in this guild.
 
         :param discord.Guild guild: Guild to check
@@ -324,9 +324,11 @@ class Deejay(Cog):
         else:
             return False
 
-    async def connect_to_user_voice_client(self, user):
+    async def connect_to_user_voice_client(
+        self, user: discord.abc.User
+    ) -> None:
         if user.voice:
-            return await user.voice.channel.connect()
+            await user.voice.channel.connect()
 
     def get_setlist_titles(self, guild_id, current=False, n=None):
         current_song = self.current_songs.get(guild_id)

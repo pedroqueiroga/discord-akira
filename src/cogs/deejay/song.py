@@ -29,36 +29,36 @@ class Song:
         self._requester_id = requester_id
 
     @property
-    def source_url(self):
+    def source_url(self) -> str:
         return self._source_url
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self._title
 
     @property
-    def webpage_url(self):
+    def webpage_url(self) -> str:
         return self._webpage_url
 
     @property
-    def duration(self):
+    def duration(self) -> int:
         return self._duration
 
     @property
-    def thumbnail(self):
+    def thumbnail(self) -> str:
         return self._thumbnail
 
     @property
-    def requester_id(self):
+    def requester_id(self) -> int:
         return self._requester_id
 
     @requester_id.setter
-    def requester_id(self, req_id):
+    def requester_id(self, req_id: int) -> None:
         if self._requester_id is None:
             self._requester_id = req_id
         else:
             raise RequesterIdAlreadySet()
 
     @property
-    def pula_votes(self):
+    def pula_votes(self) -> Set[int]:
         return self._pula_votes
