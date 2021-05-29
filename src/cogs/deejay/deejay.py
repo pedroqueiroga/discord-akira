@@ -330,15 +330,17 @@ class Deejay(Cog):
         if user.voice:
             await user.voice.channel.connect()
 
-    def get_setlist_titles(self, guild_id, current=False, n=None):
-        current_song = self.current_songs.get(guild_id)
+    def get_setlist_titles(
+        self, guild: Guild, current=False, n=None
+    ) -> List[str]:
+        current_song = guild.current_song
         if current_song and current:
             titles = [current_song['title']]
         else:
             titles = []
 
-        for song in self.setlists[guild_id]:
-            titles.append(song['title'])
+        for song in guild.setlist:
+            titles.append(song.title)
             if len(titles) == n:
                 # if n is not given, will append all titles
                 break
