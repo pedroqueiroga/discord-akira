@@ -1,6 +1,8 @@
 import validators
 import youtube_dl
 
+from .song import Song
+
 
 class Youtuber:
     """Classe que encapsula youtube_dl"""
@@ -30,7 +32,7 @@ class Youtuber:
             if validators.url(search_url) and 'entries' in result.keys():
                 found_videos = result['entries']
             elif 'entries' in result.keys():
-                # multiple videos from search sting, take first
+                # multiple videos from search string, take first
                 found_videos = [result['entries'][0]]
             else:
                 found_videos = [result]
@@ -38,12 +40,14 @@ class Youtuber:
             for video in found_videos:
                 video_info = {}
                 try:
-                    video_info['source_url'] = video['formats'][0]['url']
-                    video_info['title'] = video['title']
-                    video_info['webpage_url'] = video['webpage_url']
-                    video_info['duration'] = video['duration']
-                    video_info['thumbnail'] = video['thumbnail']
-                    videos.append(video_info)
+                    song = Song(
+                        video['formats'][0]['url'],
+                        video['title'],
+                        video['webpage_url'],
+                        video['duration'],
+                        video['thumbnail'],
+                    )
+                    videos.append(song)
                 except Exception as e:
                     pass
 
