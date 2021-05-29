@@ -1,19 +1,21 @@
-from typing import Dict, overload
-
-import discord
+from typing import Dict
 
 from .guild import Guild
 
 
 class Guilds(Dict[int, Guild]):
     """Guilds is a dictionary from guild ids (int) to Guild objects
-    If a user attempts to access a missing guild id, it won't work,
-    but if he tries it with a discord guild, then it will create
-    a new entry and return it, so he can use it seamlessly."""
+    If a user attempts to access a missing guild id it will create
+    a new entry and return it, so he can use it seamlessly.
+    It doesn't allow resetting properties."""
 
-    def __missing__(self, key: discord.Guild) -> Guild:
-        if type(key) != discord.Guild:
-            raise AttributeError('Chave inválida')
+    def __setitem__(self, key: int, value: Guild) -> None:
+        if key in self:
+            raise KeyError('Chave já está presente.', key)
 
-        self.__setitem__(key.id, Guild())
-        return self[key.id]
+        super().__setitem__(key, value)
+
+    def __missing__(self, key: int) -> Guild:
+        self[key] = Guild()
+
+        raise KeyError('Chave está faltando', key)
