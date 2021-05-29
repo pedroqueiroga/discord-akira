@@ -5,28 +5,34 @@ import math
 import re
 import time
 from random import shuffle
-from typing import Any, List
+from typing import Any, Dict, List
 
 import discord
-from discord.ext.commands import BadArgument, Cog, command, guild_only
+from discord.ext.commands import BadArgument, Bot, Cog, command, guild_only
 from youtube_dl.utils import DownloadError
 
 from ...translation import (InfoMessages, number_to_miau, pt_to_miau,
                             send_with_reaction)
 from ...utils import is_int, seconds_human_friendly
+from .guild import Guild
 from .youtuber import Youtuber
 
 
 class Deejay(Cog):
     """Akira discotecando"""
 
-    def __init__(self, bot):
+    bot: Bot
+    youtuber: Youtuber = Youtuber()
+    guilds: Dict[int, Guild] = {}
+
+    def __init__(self, bot: Bot):
         self.bot = bot
-        self.setlists = {}
-        self.current_songs = {}
-        self.youtuber = Youtuber()
-        self.stopped_playing_timestamp = None
-        self.loudness = {}
+
+    def on_ready(self):
+        """This command should be called inside bot.on_ready"""
+        print('teste')
+        for guild in self.bot.guilds:  # type: discord.Guild
+            self.guilds[guild.id] = Guild()
 
     @command()
     @guild_only()
