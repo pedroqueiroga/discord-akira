@@ -405,9 +405,9 @@ class Deejay(Cog):
 
         return embed
 
-    def get_fila_embed(self, guild_id):
+    def get_fila_embed(self, guild: Guild) -> discord.Embed:
         titles_links = self.get_setlist_titles_links_formatted(
-            guild_id, current=False
+            guild, current=False
         )
         titles_links_included = []
         total_len = 0
@@ -420,17 +420,21 @@ class Deejay(Cog):
 
         joined_titles_links = '\n'.join(titles_links_included)
         total_duration = seconds_human_friendly(
-            self.total_setlist_duration(guild_id)
+            self.total_setlist_duration(guild)
         )
         total_duration_str = f'Duração total: {total_duration}'
-        current_song = self.current_songs.get(guild_id)
+        current_song = guild.current_song
+
+        if current_song is None:
+            raise Exception('current_song is None')
+
         current_song_duration_str = (
-            f"**Duração:** {seconds_human_friendly(current_song['duration'])}"
+            f"**Duração:** {seconds_human_friendly(current_song.duration)}"
         )
 
         next_str = (
             f'\n\n**Próximas:**\n{joined_titles_links}'
-            if self.setlists[guild_id]
+            if guild.setlist
             else ''
         )
 
@@ -443,8 +447,8 @@ class Deejay(Cog):
 
         embed = (
             discord.Embed(
-                title=current_song['title'],
-                url=current_song['webpage_url'],
+                title=current_song.title,
+                url=current_song.webpage_url,
                 description=description,
             )
             .set_author(
@@ -453,7 +457,7 @@ class Deejay(Cog):
                 'discord-terraplanista/master/icons/'
                 'queue_music_white_18dp_36.png',
             )
-            .set_thumbnail(url=current_song['thumbnail'])
+            .set_thumbnail(url=current_song.thumbnail)
         )
         return embed
 
