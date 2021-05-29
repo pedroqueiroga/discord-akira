@@ -1,3 +1,5 @@
+from typing import List
+
 import validators
 import youtube_dl
 
@@ -16,7 +18,7 @@ class Youtuber:
             'ignoreerrors': False,
         }
 
-    def get_video_info(self, search_url, download=False):
+    def get_video_info(self, search_url: str, download=False) -> List[Song]:
         """Information for video(s) from a URL or search string.
 
         :param str search_url: A search string or URL for youtube.
@@ -38,7 +40,6 @@ class Youtuber:
                 found_videos = [result]
 
             for video in found_videos:
-                video_info = {}
                 try:
                     song = Song(
                         video['formats'][0]['url'],
