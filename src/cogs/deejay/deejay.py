@@ -137,7 +137,28 @@ class Deejay(Cog):
     @command()
     @guild_only()
     async def transmogrifar(self, ctx: Context, *args) -> None:
-        """Altera o estado da fila."""
+        """Altera o estado da fila.
+
+        Quatro sintaxes são permitidas.
+        Primeira sintaxe:
+          $transmogrifar a b c d e f: Os números (a,b,c,d,e,f) precisam estar contidos num
+        intervalo contínuo. Cria uma nova ordem para a lista.
+        Segunda sintaxe:
+          $transmogrifar a -> b: Empurra a música da posição a para a posição b.
+        Terceira sintaxe:
+          $transmogrifar a <- b: Empurra a música da posição b para a posição a.
+        Quarta sintaxe:
+          $transmogrifar a <-> b: Troca duas músicas de lugar.
+
+        Exemplos:       1    2       3        4     5       6
+          sendo a fila: a maconha proibida, mata somente minoria
+          "$transmogrifar 3 1 2 4 6 5" resulta em: proibida, a maconha mata minoria somente
+          "$transmogrifar 6 5" resulta em: a maconha proibida, mata minoria somente
+          "$transmogrifar 5 4" resulta em: a maconha proibida, somente mata minoria
+          "$transmogrifar 3 -> 6" resulta em: a maconha mata somente minoria proibida,
+          "$transmogrifar 3 <- 4" resulta em: a maconha mata proibida, somente minoria
+          "$transmogrifar 3 <-> 5" resula em: a maconha somente mata proibida, minoria
+        """
         # Syntax 1: list of integers. Change the indexes of the queue
         # example:  transmogrifar((1,3,2), [a,b,c,d,e,f]) -> [a,c,b,d,e,f]
         # if there are more numbers than the len(list), error out.
