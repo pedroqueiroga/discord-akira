@@ -138,7 +138,7 @@ class Deejay(Cog):
     @guild_only()
     async def trans(self, ctx: Context, *args) -> None:
         """Forma curta para "transmogrifar"."""
-        await ctx.invoke(self.bot.get_command('fila'))
+        await self.transmogrifar(ctx, *args)
 
     @command()
     @guild_only()
@@ -164,13 +164,6 @@ class Deejay(Cog):
           "$transmogrifar 3 <- 4" resulta em: a maconha mata proibida, somente minoria
           "$transmogrifar 3 <-> 5" resula em: a maconha somente mata proibida, minoria
         """
-        # Syntax 1: list of integers. Change the indexes of the queue
-        # example:  transmogrifar((1,3,2), [a,b,c,d,e,f]) -> [a,c,b,d,e,f]
-        # if there are more numbers than the len(list), error out.
-        # Syntax 2: original_position -> new position. Repositions a single
-        # element of the queue, pushing the other ones around
-        # Syntax 3: index1 <-> index2. Swaps both indexes.
-
         setlist = self.guilds[ctx.guild.id].setlist
 
         if len(setlist) < 2:
