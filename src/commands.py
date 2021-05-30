@@ -1,11 +1,11 @@
 """Module with standalone commands"""
 import datetime
 
-from discord.ext.commands import command
+from discord.ext.commands import Context, command
 
 
 @command()
-async def echo(ctx, *args):
+async def echo(ctx: Context, *args) -> None:
     """Ecoa os argumentos.
 
     :param str args: Texto que será ecoado.
@@ -15,7 +15,7 @@ async def echo(ctx, *args):
 
 
 @command()
-async def uptime(ctx):
+async def uptime(ctx: Context) -> None:
     """Uptime de Akira"""
     now = datetime.datetime.now(datetime.timezone.utc)
     td = now - ctx.bot.on_ready_time
@@ -23,7 +23,7 @@ async def uptime(ctx):
 
 
 @command()
-async def codiguis(ctx):
+async def codiguis(ctx: Context) -> None:
     """Informa onde o código de Akira está hospedado"""
     localizacao = 'https://github.com/pedroqueiroga/discord-akira'
     await ctx.send(localizacao)
