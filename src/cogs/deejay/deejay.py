@@ -173,7 +173,7 @@ class Deejay(Cog):
 
         if len(args) == 0:
             self.shuffle(setlist)
-            await ctx.invoke(self.bot.get_command('fila'))
+            await self.fila(ctx)
             return
 
         if len(args) < 2:
@@ -197,7 +197,7 @@ class Deejay(Cog):
         if rearrange is not None:
             try:
                 self.reorder_list(setlist, rearrange)
-                await ctx.invoke(self.bot.get_command('fila'))
+                await self.fila(ctx)
                 return
             except:
                 raise BadArgument(None)
@@ -221,7 +221,7 @@ class Deejay(Cog):
                 arglist[0],
                 arglist[2],
             )
-            await ctx.invoke(self.bot.get_command('fila'))
+            await self.fila(ctx)
             return
 
         if arglist[1] == '<->':
@@ -230,7 +230,7 @@ class Deejay(Cog):
                 arglist[0],
                 arglist[2],
             )
-            await ctx.invoke(self.bot.get_command('fila'))
+            await self.fila(ctx)
             return
 
         raise BadArgument(None)
