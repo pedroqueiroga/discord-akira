@@ -136,13 +136,18 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
+    async def trans(self, ctx: Context, *args) -> None:
+        """Forma curta para "transmogrifar"."""
+        await ctx.invoke(self.bot.get_command('fila'))
+
+    @command()
+    @guild_only()
     async def transmogrifar(self, ctx: Context, *args) -> None:
         """Altera o estado da fila.
 
         Quatro sintaxes são permitidas.
         Primeira sintaxe:
-          $transmogrifar a b c d e f: Os números (a,b,c,d,e,f) precisam estar contidos num
-        intervalo contínuo. Cria uma nova ordem para a lista.
+          $transmogrifar a b c d e f: Os números (a,b,c,d,e,f) precisam estar contidos num intervalo contínuo. Cria uma nova ordem para a lista.
         Segunda sintaxe:
           $transmogrifar a -> b: Empurra a música da posição a para a posição b.
         Terceira sintaxe:
