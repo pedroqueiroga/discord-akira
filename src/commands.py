@@ -27,3 +27,8 @@ async def codiguis(ctx):
     """Informa onde o código de Akira está hospedado"""
     localizacao = 'https://github.com/pedroqueiroga/discord-akira'
     await ctx.send(localizacao)
+
+
+@command()
+async def ajuda(ctx: Context, *args) -> None:
+    await ctx.send_help(*args)
