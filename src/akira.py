@@ -92,4 +92,4 @@ class Akira(Bot):
 
     def should_ignore(self):
         """Decides if should ignore a command"""
-        return random.random() < 0.07
+        return random.random() < 0.01
