@@ -602,7 +602,7 @@ class Deejay(Cog):
             guild.stopped_playing_timestamp = None
 
     def should_start_playing(self, voice_client: discord.VoiceClient) -> bool:
-        return not voice_client.is_playing()
+        return not (voice_client.is_playing() or voice_client.is_paused())
 
     def get_list_range(self, l: List[int]) -> Dict[str, int]:
         """Takes a list and returns the range it comprehends.
