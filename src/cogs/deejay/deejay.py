@@ -555,6 +555,25 @@ class Deejay(Cog):
         # this method is quite long, it is mostly verifications
         return await send_with_reaction(ctx.send, miau)
 
+    @command()
+    @guild_only()
+    async def pausa(self, ctx: Context):
+        """Pausa ou resume a música que está tocando."""
+
+        voice_client: discord.VoiceClient = ctx.guild.voice_client
+
+        if not voice_client:
+            return
+
+        if voice_client.is_playing():
+            print('playing')
+            voice_client.pause()
+            return
+        elif voice_client.is_paused():
+            print('paused')
+            voice_client.resume()
+            return
+
     def get_new_volume(
         self, current_volume: float, volume: float, diff=False
     ) -> Tuple[float, float]:
