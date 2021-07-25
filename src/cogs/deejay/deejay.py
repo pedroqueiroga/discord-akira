@@ -336,7 +336,7 @@ class Deejay(Cog):
                 )
 
     def is_playing_guild(self, guild: discord.Guild) -> bool:
-        """Decides if the Akira is playing an Audio Source in this guild.
+        """Decides if Akira is playing an Audio Source in this guild.
 
         :param discord.Guild guild: Guild to check
         :returns: True if Akira is playing in guild.
