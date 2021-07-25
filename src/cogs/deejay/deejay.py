@@ -33,6 +33,13 @@ class Deejay(Cog):
 
     @command()
     @guild_only()
+    async def t(self, ctx: Context, *, args) -> None:
+        """Forma curta para "toca"."""
+
+        await self.toca(ctx, args=args)
+
+    @command()
+    @guild_only()
     async def toca(self, ctx: Context, *, args) -> None:
         """Toca música.
         Se não estiver conectada a um canal de voz, entra no canal de voz do
